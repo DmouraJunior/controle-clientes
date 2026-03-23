@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Controle de Clientes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); }
@@ -27,6 +28,9 @@
         /* Estilos do Resultado */
         .saldo-card { display: flex; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; margin-top: 15px; font-weight: bold; }
         .historico-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.9rem; }
+        
+        /* Botão de PDF específico */
+        .btn-pdf { background: #475569; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
@@ -56,11 +60,18 @@
         <div id="carregando" class="spinner"></div>
 
         <div id="resumo" style="display:none;">
-            <div class="saldo-card">
-                <span>Saldo Devedor Atual:</span>
-                <span id="saldoTotal">R$ 0,00</span>
+            <div id="area-pdf">
+                <h3 id="titulo-pdf" style="margin-bottom: 5px; display:none;">Extrato de Cliente</h3>
+                <div class="saldo-card">
+                    <span>Saldo Devedor Atual:</span>
+                    <span id="saldoTotal">R$ 0,00</span>
+                </div>
+                <div id="listaHistorico"></div>
             </div>
-            <div id="listaHistorico"></div>
+            
+            <button id="btnExportarPdf" class="btn-pdf" onclick="exportarParaPDF()">
+                <span>📄</span> Exportar para PDF / WhatsApp
+            </button>
         </div>
     </div>
 
@@ -110,21 +121,21 @@
             const btnBuscar = document.getElementById('btnBuscar');
             const spinner = document.getElementById('carregando');
             const areaResumo = document.getElementById('resumo');
+            const btnPdf = document.getElementById('btnExportarPdf');
 
             if(termo.length < 2) {
                 return alert("Digite pelo menos 2 letras do nome.");
             }
 
-            // Ativa Bolinha e trava botão
             spinner.style.display = 'block';
             areaResumo.style.display = 'none';
+            btnPdf.style.display = 'none';
             btnBuscar.disabled = true;
 
             try {
                 const response = await fetch(URL_GOOGLE);
                 const dados = await response.json();
                 
-                // Filtra ignorando o cabeçalho
                 const historicoFiltrado = dados.slice(1).filter(linha => 
                     linha[1] && linha[1].toString().toLowerCase().includes(termo)
                 );
@@ -133,6 +144,7 @@
                     alert("Nenhum registro encontrado.");
                 } else {
                     exibirResultados(historicoFiltrado);
+                    btnPdf.style.display = 'flex'; // Mostra o botão após carregar
                 }
             } catch (e) {
                 alert("Erro ao buscar dados.");
@@ -176,6 +188,28 @@
 
             saldoDiv.innerText = `R$ ${totalDevido.toFixed(2).replace('.', ',')}`;
             saldoDiv.style.color = totalDevido > 0 ? 'var(--danger)' : 'var(--success)';
+        }
+
+        // FUNÇÃO DE PDF (Adicionada)
+        function exportarParaPDF() {
+            const elemento = document.getElementById('area-pdf');
+            const nomeCliente = document.getElementById('busca').value;
+            const titulo = document.getElementById('titulo-pdf');
+            
+            titulo.style.display = 'block';
+            titulo.innerText = "Extrato: " + nomeCliente.toUpperCase();
+
+            const opcoes = {
+                margin: 10,
+                filename: 'Extrato_' + nomeCliente + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opcoes).from(elemento).save().then(() => {
+                titulo.style.display = 'none'; // Esconde o título de volta após gerar
+            });
         }
     </script>
 </body>
