@@ -3,59 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Clientes</title>
+    <title>Meu Controle de Clientes</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { background: #28a745; color: white; border: none; font-weight: bold; }
-        #historico { margin-top: 20px; font-size: 0.9em; }
+        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #1e293b; font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
+        .btn-pagamento { background: var(--success); }
+        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f1f5f9; border-radius: 8px; margin-top: 10px; }
+        .valor { font-weight: bold; }
+        .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .tag { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>Novo Lançamento</h3>
+        <h2>➕ Novo Lançamento</h2>
         <input type="text" id="cliente" placeholder="Nome do Cliente">
         <input type="date" id="data">
-        <input type="text" id="descricao" placeholder="Ex: Vestido Azul">
-        <input type="number" id="valor" placeholder="Valor (Ex: 100.00)">
+        <input type="text" id="descricao" placeholder="Ex: Vestido, Blusa, Parcela...">
+        <input type="number" id="valor" placeholder="Valor (0.00)">
         <select id="tipo">
-            <option value="Compra">Compra (Aumenta dívida)</option>
-            <option value="Pagamento">Pagamento (Diminui dívida)</option>
+            <option value="Compra">🛍️ Compra (Dívida)</option>
+            <option value="Pagamento">💵 Pagamento (Abate)</option>
         </select>
-        <button onclick="salvar()">Salvar no Sistema</button>
+        <button id="btnSalvar" onclick="salvar()">Salvar no Sistema</button>
     </div>
 
     <div class="card">
-        <h3>Buscar Histórico</h3>
-        <input type="text" id="buscaCliente" placeholder="Digitar nome para buscar..." onkeyup="buscar()">
-        <div id="resultadoBusca"></div>
+        <h2>🔍 Buscar Cliente</h2>
+        <input type="text" id="busca" placeholder="Digite o nome..." onkeyup="buscarNoSistema()">
+        
+        <div id="resumo" style="display:none;">
+            <div class="saldo-card">
+                <span>Saldo Devedor:</span>
+                <span id="saldoTotal" class="valor">R$ 0,00</span>
+            </div>
+            <div id="listaHistorico"></div>
+        </div>
     </div>
 
     <script>
-        const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
+        // --- 1. COLE SUA URL DO GOOGLE AQUI ---
+        const URL_GOOGLE = "SUA_URL_DO_APPS_SCRIPT_AQUI";
 
         async function salvar() {
+            const btn = document.getElementById('btnSalvar');
             const dados = {
                 data: document.getElementById('data').value,
-                cliente: document.getElementById('cliente').value,
+                cliente: document.getElementById('cliente').value.trim(),
                 descricao: document.getElementById('descricao').value,
-                valor: document.getElementById('valor').value,
+                valor: parseFloat(document.getElementById('valor').value),
                 tipo: document.getElementById('tipo').value
             };
 
-            await fetch(URL_GOOGLE, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(dados)
-            });
-            
-            alert("Lançamento salvo!");
-            location.reload();
+            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
+
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
+            try {
+                await fetch(URL_GOOGLE, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(dados)
+                });
+                alert("Salvo com sucesso!");
+                location.reload();
+            } catch (e) {
+                alert("Erro ao salvar!");
+                btn.disabled = false;
+            }
         }
-        
-        // Aqui você adicionaria a lógica para buscar os dados da planilha e filtrar
+
+        async function buscarNoSistema() {
+            const termo = document.getElementById('busca').value.toLowerCase();
+            if(termo.length < 2) return;
+
+            const response = await fetch(URL_GOOGLE);
+            const dados = await response.json();
+            
+            const historicoFiltrado = dados.filter(linha => 
+                linha[1].toString().toLowerCase().includes(termo)
+            );
+
+            exibirResultados(historicoFiltrado);
+        }
+
+        function exibirResultados(lista) {
+            const areaResumo = document.getElementById('resumo');
+            const listaDiv = document.getElementById('listaHistorico');
+            const saldoDiv = document.getElementById('saldoTotal');
+            
+            areaResumo.style.display = 'block';
+            listaDiv.innerHTML = "";
+            let totalDevido = 0;
+
+            lista.forEach(item => {
+                const data = new Date(item[0]).toLocaleDateString('pt-BR');
+                const valor = parseFloat(item[3]);
+                const tipo = item[4];
+
+                if(tipo === "Compra") totalDevido += valor;
+                else totalDevido -= valor;
+
+                listaDiv.innerHTML += `
+                    <div class="historico-item">
+                        <span>${data} - ${item[2]}</span>
+                        <span style="color: ${tipo === 'Compra' ? 'red' : 'green'}">
+                            ${tipo === 'Compra' ? '+' : '-'} R$ ${valor.toFixed(2)}
+                        </span>
+                    </div>
+                `;
+            });
+
+            saldoDiv.innerText = `R$ ${totalDevido.toFixed(2)}`;
+            saldoDiv.style.color = totalDevido > 0 ? 'var(--danger)' : 'var(--success)';
+        }
+
+        // Coloca a data de hoje automaticamente
+        document.getElementById('data').valueAsDate = new Date();
     </script>
 </body>
 </html>
