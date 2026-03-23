@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Clientes</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; font-weight: bold; }
+        #historico { margin-top: 20px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h3>Novo Lançamento</h3>
+        <input type="text" id="cliente" placeholder="Nome do Cliente">
+        <input type="date" id="data">
+        <input type="text" id="descricao" placeholder="Ex: Vestido Azul">
+        <input type="number" id="valor" placeholder="Valor (Ex: 100.00)">
+        <select id="tipo">
+            <option value="Compra">Compra (Aumenta dívida)</option>
+            <option value="Pagamento">Pagamento (Diminui dívida)</option>
+        </select>
+        <button onclick="salvar()">Salvar no Sistema</button>
+    </div>
+
+    <div class="card">
+        <h3>Buscar Histórico</h3>
+        <input type="text" id="buscaCliente" placeholder="Digitar nome para buscar..." onkeyup="buscar()">
+        <div id="resultadoBusca"></div>
+    </div>
+
+    <script>
+        const URL_GOOGLE = "COLE_AQUI_A_URL_DO_PASSO_9";
+
+        async function salvar() {
+            const dados = {
+                data: document.getElementById('data').value,
+                cliente: document.getElementById('cliente').value,
+                descricao: document.getElementById('descricao').value,
+                valor: document.getElementById('valor').value,
+                tipo: document.getElementById('tipo').value
+            };
+
+            await fetch(URL_GOOGLE, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(dados)
+            });
+            
+            alert("Lançamento salvo!");
+            location.reload();
+        }
+        
+        // Aqui você adicionaria a lógica para buscar os dados da planilha e filtrar
+    </script>
+</body>
+</html>
