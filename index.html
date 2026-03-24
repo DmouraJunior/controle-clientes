@@ -14,21 +14,22 @@
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin: 0 auto 20px auto; }
-        .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; }
+        /* Painel de Débito com Olhinho */
+        .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin: 0 auto 20px auto; position: relative; }
+        .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; margin: 5px 0; }
+        .btn-toggle-view { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 20px; width: auto; padding: 0; margin: 0; display: inline-block; }
 
-        /* Sanfona e Busca */
+        /* Estilos da Busca e Listagem */
         .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
         .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
-        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; }
         .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
 
-        .sanfona-item { margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
-        .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
-        .sanfona-content { display: none; padding: 15px; border-top: 1px solid #eee; }
+        .sanfona-item { margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; overflow: hidden; }
+        .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .sanfona-content { display: none; padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
         
-        #tela-login, #tela-primeiro-acesso, #tela-sistema { max-width: 500px; margin: auto; }
-        #tela-primeiro-acesso, #tela-sistema { display: none; }
+        #tela-sistema { display: none; max-width: 500px; margin: auto; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -37,8 +38,8 @@
 
     <div id="tela-login" class="card">
         <div class="titulo-principal">SISTEMA DE CONTROLE INTERNO MOURA VARIEDADES</div>
-        <input type="text" id="userInput" placeholder="Usuário (edna, junior, mayara ou maraysa)">
-        <input type="password" id="senhaInput" placeholder="Sua Senha">
+        <input type="text" id="userInput" placeholder="Usuário">
+        <input type="password" id="senhaInput" placeholder="Senha">
         <button onclick="verificarLogin()">ENTRAR NO SISTEMA</button>
     </div>
 
@@ -51,47 +52,52 @@
     <div id="tela-sistema">
         <div class="debit-total">
             DÉBITO TOTAL DA LOJA (GERAL)
-            <span id="valorDebitoTotal">R$ 0,00</span>
-            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:11px; text-decoration:underline; width:auto; margin:0 auto">🔄 ATUALIZAR SALDO GERAL</button>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span id="valorDebitoTotal">****</span>
+                <button class="btn-toggle-view" onclick="toggleDebitoGeral()">👁️</button>
+            </div>
+            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:11px; text-decoration:underline; width:auto; margin:0 auto; color: #94a3b8">🔄 ATUALIZAR DADOS</button>
         </div>
 
         <div class="card">
             <h3 class="titulo-principal">➕ NOVO LANÇAMENTO</h3>
             <input type="text" id="cliente" placeholder="Nome do Cliente">
             <input type="date" id="data">
-            <input type="text" id="descricao" placeholder="O que foi comprado? (Ex: Vestido, Blusa...)">
+            <input type="text" id="descricao" placeholder="Descrição do item">
             <input type="number" id="valor" placeholder="Valor (0.00)">
             <select id="tipo">
-                <option value="Compra">🛍️ Compra (Dívida)</option>
-                <option value="Pagamento">💵 Pagamento (Abate)</option>
+                <option value="Compra">🛍️ Compra</option>
+                <option value="Pagamento">💵 Pagamento</option>
             </select>
-            <button id="btnSalvar" onclick="salvar()">💾 SALVAR NO SISTEMA</button>
+            <button id="btnSalvar" onclick="salvar()">💾 SALVAR</button>
         </div>
 
         <div class="card">
-            <h3 class="titulo-principal">🔍 BUSCA RÁPIDA E EXTRATO</h3>
-            <input type="text" id="busca" placeholder="Nome do cliente para ver débito...">
-            <button onclick="buscarNoSistema()">BUSCAR AGORA</button>
+            <h3 class="titulo-principal">🔍 BUSCA RÁPIDA</h3>
+            <input type="text" id="busca" placeholder="Nome do cliente...">
+            <button onclick="buscarNoSistema()">BUSCAR</button>
             <div id="carregando" class="spinner"></div>
             <div id="resumoBusca"></div>
         </div>
 
         <div class="card">
             <h3 class="titulo-principal">👥 LISTA DE CLIENTES</h3>
-            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR TODOS OS CLIENTES</button>
+            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR LISTA</button>
             <div id="listaSanfona"></div>
         </div>
     </div>
 
     <script>
         const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
-        const USUARIOS = ["edna", "junior", "mayara", "maraysa"];
+        let debitoGeralReal = 0;
+        let mostrandoDebito = false;
 
         function verificarLogin() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const senha = document.getElementById('senhaInput').value;
             const salva = localStorage.getItem('senha_' + user);
-            if (!USUARIOS.includes(user)) return alert("Usuário não autorizado!");
+            const autorizados = ["edna", "junior", "mayara", "maraysa"];
+            if (!autorizados.includes(user)) return alert("Não autorizado!");
             if (!salva && senha === "1234") { 
                 document.getElementById('tela-login').style.display='none'; 
                 document.getElementById('tela-primeiro-acesso').style.display='flex';
@@ -114,43 +120,55 @@
             document.getElementById('data').valueAsDate = new Date();
         }
 
+        // LÓGICA DO OLHINHO NO DÉBITO GERAL
         async function calcularDebitoTotal() {
             const span = document.getElementById('valorDebitoTotal');
-            span.innerText = "Calculando...";
-            const resp = await fetch(URL_GOOGLE);
-            const dados = await resp.json();
-            let totalGeral = 0;
-            dados.slice(1).forEach(l => {
-                let v = parseFloat(l[3]);
-                totalGeral += (l[4] === "Compra" ? v : -v);
-            });
-            span.innerText = "R$ " + totalGeral.toFixed(2);
+            const originalText = span.innerText;
+            span.innerText = "Carregando...";
+            try {
+                const resp = await fetch(URL_GOOGLE);
+                const dados = await resp.json();
+                let total = 0;
+                dados.slice(1).forEach(l => {
+                    let v = parseFloat(l[3]);
+                    total += (l[4] === "Compra" ? v : -v);
+                });
+                debitoGeralReal = total.toFixed(2);
+                span.innerText = mostrandoDebito ? "R$ " + debitoGeralReal : "****";
+                alert("Dados atualizados com sucesso!");
+            } catch(e) { span.innerText = originalText; alert("Erro ao atualizar."); }
         }
 
+        function toggleDebitoGeral() {
+            const span = document.getElementById('valorDebitoTotal');
+            mostrandoDebito = !mostrandoDebito;
+            if (mostrandoDebito) {
+                span.innerText = debitoGeralReal === 0 ? "Clique em Atualizar" : "R$ " + debitoGeralReal;
+            } else {
+                span.innerText = "****";
+            }
+        }
+
+        // BUSCA E EXTRATO
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
             if(termo.length < 2) return alert("Digite o nome!");
             const resumoDiv = document.getElementById('resumoBusca');
             document.getElementById('carregando').style.display = 'block';
             resumoDiv.innerHTML = '';
-
             try {
                 const response = await fetch(URL_GOOGLE);
                 const dados = await response.json();
                 const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
-                
-                if (filtrados.length === 0) {
-                    resumoDiv.innerHTML = "Nenhum cliente encontrado.";
-                } else {
+                if (filtrados.length === 0) { resumoDiv.innerHTML = "Nenhum cliente encontrado."; } 
+                else {
                     const grupos = {};
                     filtrados.forEach(item => {
                         const nome = item[1];
                         if (!grupos[nome]) grupos[nome] = [];
                         grupos[nome].push(item);
                     });
-                    for (let nomeCliente in grupos) {
-                        renderizarCliente(nomeCliente, grupos[nomeCliente], resumoDiv);
-                    }
+                    for (let nomeCliente in grupos) { renderizarCliente(nomeCliente, grupos[nomeCliente], resumoDiv); }
                 }
             } catch (e) { alert("Erro na busca."); }
             finally { document.getElementById('carregando').style.display = 'none'; }
@@ -161,20 +179,14 @@
             let total = 0;
             let html = `<div class="cliente-bloco" id="${idBloco}">
                 <div class="cliente-nome-header">👤 ${nome}</div>
-                <div id="print-${idBloco}">
-                    <div class="saldo-card"><span>Dívida Atual:</span><span class="val-saldo"></span></div>`;
-
+                <div id="print-${idBloco}"><div class="saldo-card"><span>Dívida:</span><span class="val-saldo"></span></div>`;
             lista.forEach(item => {
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
                 total += (tipo === "Compra" ? valor : -valor);
-                html += `<div class="historico-item">
-                    <div><strong>${new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</strong><br><small>${item[2] || ''}</small></div>
-                    <span style="color: ${tipo === 'Compra' ? 'red' : 'green'}">R$ ${valor.toFixed(2)}</span>
-                </div>`;
+                html += `<div class="historico-item"><div><strong>${new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</strong><br><small>${item[2] || ''}</small></div><span style="color:${tipo==='Compra'?'red':'green'}">R$ ${valor.toFixed(2)}</span></div>`;
             });
-
-            html += `</div><button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 GERAR PDF DE ${nome}</button></div>`;
+            html += `</div><button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 PDF</button></div>`;
             container.innerHTML += html;
             const bloco = document.getElementById(idBloco);
             const saldoSpan = bloco.querySelector('.val-saldo');
@@ -182,6 +194,7 @@
             saldoSpan.style.color = total > 0 ? 'red' : 'green';
         }
 
+        // LISTA SANFONA COM FECHAMENTO
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
             div.innerHTML = "Carregando...";
@@ -193,29 +206,35 @@
                 const item = document.createElement('div');
                 item.className = 'sanfona-item';
                 item.innerHTML = `<div class="sanfona-header" onclick="toggleSanfona(this)"><span>👤 ${nome}</span> <span>➕</span></div>
-                    <div class="sanfona-content"><button style="background:#f59e0b;font-size:12px;width:auto" onclick="editarNome('${nome}')">✏️ RENOMEAR CLIENTE</button></div>`;
+                    <div class="sanfona-content"><button style="background:#f59e0b;font-size:12px;width:auto" onclick="editarNome('${nome}')">✏️ RENOMEAR</button></div>`;
                 div.appendChild(item);
             });
         }
 
         function toggleSanfona(el) {
             const content = el.nextElementSibling;
-            content.style.display = content.style.display === "block" ? "none" : "block";
-            el.querySelector('span:last-child').innerText = content.style.display === "block" ? "➖" : "➕";
+            const icone = el.querySelector('span:last-child');
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                icone.innerText = "➕";
+            } else {
+                content.style.display = "block";
+                icone.innerText = "➖";
+            }
         }
 
         async function editarNome(nomeAntigo) {
             const novoNome = prompt("Novo nome para " + nomeAntigo);
             if (!novoNome) return;
             await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
-            alert("Solicitação enviada!");
+            alert("Enviado!");
         }
 
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
             const dados = { data: document.getElementById('data').value, cliente: document.getElementById('cliente').value.trim(), descricao: document.getElementById('descricao').value, valor: parseFloat(document.getElementById('valor').value), tipo: document.getElementById('tipo').value };
-            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
-            btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
+            if(!dados.cliente || !dados.valor) return alert("Dados incompletos!");
+            btn.disabled = true; btn.innerText = "Salvando...";
             try {
                 await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
                 alert("Salvo!");
@@ -223,7 +242,7 @@
                 document.getElementById('valor').value = '';
                 document.getElementById('descricao').value = '';
             } catch(e) { alert("Erro!"); }
-            finally { btn.disabled = false; btn.innerText = "💾 SALVAR NO SISTEMA"; }
+            finally { btn.disabled = false; btn.innerText = "💾 SALVAR"; }
         }
 
         function gerarPDF(id, nome) {
