@@ -9,16 +9,7 @@
         :root { --primary: #515252; --success: #16a34a; --danger: #dc2626; --bg-body: #9ca3af; --text-dark: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); margin: 0; padding: 15px; color: var(--text-dark); min-height: 100vh; }
         
-        /* Centralização da Tela de Login */
-        #tela-login { 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            min-height: 85vh; /* Faz o login ocupar quase toda a altura da tela para centralizar */
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
+        #tela-login { display: flex; flex-direction: column; justify-content: center; min-height: 85vh; max-width: 400px; margin: 0 auto; }
         .card { background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; }
         .titulo-principal { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 1px; color: #111; margin-bottom: 20px; font-size: 1.1rem; border: none; }
         
@@ -32,7 +23,7 @@
         .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
         .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
         .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; }
-        .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
+        .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
 
         .sanfona-item { margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; overflow: hidden; }
         .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
@@ -41,6 +32,8 @@
         #tela-sistema { display: none; max-width: 500px; margin: auto; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-excluir { background: none; color: var(--danger); border: none; cursor: pointer; font-size: 18px; width: auto; padding: 5px; margin: 0; }
     </style>
 </head>
 <body>
@@ -55,10 +48,8 @@
     </div>
 
     <div id="tela-sistema">
-        
         <div class="debit-total">
             <button onclick="encerrarSessao()" style="position: absolute; top: 10px; right: 10px; width: auto; padding: 4px 8px; font-size: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #94a3b8; margin: 0;">SAIR</button>
-
             DÉBITO TOTAL DA LOJA (GERAL)
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <span id="valorDebitoTotal">****</span>
@@ -96,7 +87,7 @@
     </div>
 
     <script>
-        const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
+        const URL_GOOGLE = "SUA_URL_AQUI"; // COLOQUE SUA URL AQUI
         let debitoGeralReal = 0;
         let mostrandoDebito = false;
 
@@ -104,15 +95,9 @@
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const senha = document.getElementById('senhaInput').value;
             const autorizados = ["edna", "junior", "mayara", "maraysa"];
-            
             if (!autorizados.includes(user)) return alert("Não autorizado!");
             const salva = localStorage.getItem('senha_' + user) || "1234";
-            
-            if (senha === salva) { 
-                abrirSistema(); 
-            } else { 
-                alert("Senha incorreta!"); 
-            }
+            if (senha === salva) { abrirSistema(); } else { alert("Senha incorreta!"); }
         }
 
         function encerrarSessao() {
@@ -143,8 +128,7 @@
                 });
                 debitoGeralReal = total.toFixed(2);
                 span.innerText = mostrandoDebito ? "R$ " + debitoGeralReal : "****";
-                alert("Dados atualizados!");
-            } catch(e) { span.innerText = "****"; alert("Erro ao atualizar."); }
+            } catch(e) { span.innerText = "****"; }
         }
 
         function toggleDebitoGeral() {
@@ -184,10 +168,19 @@
                 <div class="cliente-nome-header">👤 ${nome}</div>
                 <div id="print-${idBloco}"><div class="saldo-card"><span>Dívida:</span><span class="val-saldo"></span></div>`;
             lista.forEach(item => {
+                const dataFormatada = new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
                 total += (tipo === "Compra" ? valor : -valor);
-                html += `<div class="historico-item"><div><strong>${new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</strong><br><small>${item[2] || ''}</small></div><span style="color:${tipo==='Compra'?'red':'green'}">R$ ${valor.toFixed(2)}</span></div>`;
+                
+                // Botão de excluir adicionado aqui
+                html += `<div class="historico-item">
+                    <div><strong>${dataFormatada}</strong><br><small>${item[2] || ''}</small></div>
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span style="color:${tipo==='Compra'?'red':'green'}">R$ ${valor.toFixed(2)}</span>
+                        <button class="btn-excluir" onclick="excluirLinha('${item[0]}', '${nome}', '${item[2]}', ${valor})">🗑️</button>
+                    </div>
+                </div>`;
             });
             html += `</div><button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 PDF</button></div>`;
             container.innerHTML += html;
@@ -197,14 +190,23 @@
             saldoSpan.style.color = total > 0 ? 'red' : 'green';
         }
 
+        async function excluirLinha(data, cliente, descricao, valor) {
+            if(!confirm("Tem certeza que deseja excluir este lançamento?")) return;
+            try {
+                await fetch(URL_GOOGLE, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({acao: 'excluir', data, cliente, descricao, valor}) 
+                });
+                alert("Pedido de exclusão enviado! Aguarde um momento e busque novamente.");
+                buscarNoSistema();
+            } catch(e) { alert("Erro ao excluir."); }
+        }
+
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
             const btn = document.getElementById('btnCarregarLista');
-            if (div.innerHTML !== "") {
-                div.innerHTML = "";
-                btn.innerText = "📂 CARREGAR LISTA";
-                return;
-            }
+            if (div.innerHTML !== "") { div.innerHTML = ""; btn.innerText = "📂 CARREGAR LISTA"; return; }
             div.innerHTML = "Carregando...";
             btn.innerText = "⌛ AGUARDE...";
             try {
@@ -220,10 +222,7 @@
                     div.appendChild(item);
                 });
                 btn.innerText = "❌ FECHAR LISTA";
-            } catch(e) {
-                div.innerHTML = "Erro ao carregar.";
-                btn.innerText = "📂 CARREGAR LISTA";
-            }
+            } catch(e) { div.innerHTML = "Erro ao carregar."; btn.innerText = "📂 CARREGAR LISTA"; }
         }
 
         function toggleSanfona(el) {
