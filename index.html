@@ -23,6 +23,8 @@
         .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
         .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
         .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .alerta-debito { background: #fef08a !important; border: 2px solid #facc15 !important; color: #854d0e !important; } /* Estilo de Alerta */
+        
         .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
 
         .sanfona-item { margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; overflow: hidden; }
@@ -50,12 +52,17 @@
     <div id="tela-sistema">
         <div class="debit-total">
             <button onclick="encerrarSessao()" style="position: absolute; top: 10px; right: 10px; width: auto; padding: 4px 8px; font-size: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #94a3b8; margin: 0;">SAIR</button>
-            DÉBITO TOTAL DA LOJA
+            
+            <div id="labelDebito">DÉBITO TOTAL DA LOJA (GERAL)</div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <span id="valorDebitoTotal">****</span>
                 <button class="btn-toggle-view" onclick="toggleDebitoGeral()">👁️</button>
             </div>
-            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:11px; text-decoration:underline; width:auto; margin:0 auto; color: #94a3b8">🔄 ATUALIZAR DADOS</button>
+            
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 5px;">
+                <button onclick="calcularDebitoTotal('geral')" style="background:transparent; font-size:10px; text-decoration:underline; width:auto; color: #94a3b8">TOTAL ACUMULADO</button>
+                <button onclick="calcularDebitoTotal('mes')" style="background:transparent; font-size:10px; text-decoration:underline; width:auto; color: #94a3b8">DÉBITO DO MÊS</button>
+            </div>
         </div>
 
         <div class="card">
@@ -69,6 +76,7 @@
                 <option value="Pagamento">💵 Pagamento</option>
             </select>
             <button id="btnSalvar" onclick="salvar()">💾 SALVAR</button>
+            <button onclick="gerarRelatorioDia()" style="background:#0f172a; margin-top:10px; font-size:12px">📋 RELATÓRIO DO DIA (PDF)</button>
         </div>
 
         <div class="card">
@@ -87,7 +95,7 @@
     </div>
 
     <script>
-        const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbxE0R50QQwnFLOrI7jhEan8bK1HfxjG_pZkdRGXglbhbTBwo-5ZqCtwlKG1P2SBXfNUbA/exec"; // COLOQUE SUA URL AQUI
+        const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbxE0R50QQwnFLOrI7jhEan8bK1HfxjG_pZkdRGXglbhbTBwo-5ZqCtwlKG1P2SBXfNUbA/exec";
         let debitoGeralReal = 0;
         let mostrandoDebito = false;
 
@@ -115,18 +123,31 @@
             document.getElementById('data').valueAsDate = new Date();
         }
 
-        async function calcularDebitoTotal() {
+        async function calcularDebitoTotal(modo) {
             const span = document.getElementById('valorDebitoTotal');
+            const label = document.getElementById('labelDebito');
             span.innerText = "Calculando...";
             try {
                 const resp = await fetch(URL_GOOGLE);
                 const dados = await resp.json();
                 let total = 0;
+                const hoje = new Date();
+                
                 dados.slice(1).forEach(l => {
+                    const dataLancamento = new Date(l[0]);
                     let v = parseFloat(l[3]);
-                    total += (l[4] === "Compra" ? v : -v);
+                    
+                    if (modo === 'mes') {
+                        if (dataLancamento.getMonth() === hoje.getMonth() && dataLancamento.getFullYear() === hoje.getFullYear()) {
+                            total += (l[4] === "Compra" ? v : -v);
+                        }
+                    } else {
+                        total += (l[4] === "Compra" ? v : -v);
+                    }
                 });
+                
                 debitoGeralReal = total.toFixed(2);
+                label.innerText = modo === 'mes' ? "DÉBITO DO MÊS ATUAL" : "DÉBITO TOTAL DA LOJA (GERAL)";
                 span.innerText = mostrandoDebito ? "R$ " + debitoGeralReal : "****";
             } catch(e) { span.innerText = "****"; }
         }
@@ -134,7 +155,7 @@
         function toggleDebitoGeral() {
             const span = document.getElementById('valorDebitoTotal');
             mostrandoDebito = !mostrandoDebito;
-            span.innerText = mostrandoDebito ? (debitoGeralReal === 0 ? "Clique em Atualizar" : "R$ " + debitoGeralReal) : "****";
+            span.innerText = mostrandoDebito ? (debitoGeralReal === 0 ? "Clique abaixo" : "R$ " + debitoGeralReal) : "****";
         }
 
         async function buscarNoSistema() {
@@ -164,17 +185,15 @@
         function renderizarCliente(nome, lista, container) {
             const idBloco = "bloco-" + Math.random().toString(36).substr(2, 9);
             let total = 0;
-            let html = `<div class="cliente-bloco" id="${idBloco}">
-                <div class="cliente-nome-header">👤 ${nome}</div>
-                <div id="print-${idBloco}"><div class="saldo-card"><span>Dívida:</span><span class="val-saldo"></span></div>`;
+            let htmlHistorico = "";
+            
             lista.forEach(item => {
                 const dataFormatada = new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
                 total += (tipo === "Compra" ? valor : -valor);
                 
-                // Botão de excluir adicionado aqui
-                html += `<div class="historico-item">
+                htmlHistorico += `<div class="historico-item">
                     <div><strong>${dataFormatada}</strong><br><small>${item[2] || ''}</small></div>
                     <div style="display:flex; align-items:center; gap:8px">
                         <span style="color:${tipo==='Compra'?'red':'green'}">R$ ${valor.toFixed(2)}</span>
@@ -182,25 +201,62 @@
                     </div>
                 </div>`;
             });
-            html += `</div><button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 PDF</button></div>`;
-            container.innerHTML += html;
+
+            // Aplica Alerta se total > 500
+            const classeAlerta = total >= 500 ? "alerta-debito" : "";
+
+            let htmlFinal = `<div class="cliente-bloco" id="${idBloco}">
+                <div class="cliente-nome-header">👤 ${nome}</div>
+                <div id="print-${idBloco}">
+                    <div class="saldo-card ${classeAlerta}"><span>Dívida Atual:</span><span class="val-saldo">R$ ${total.toFixed(2)}</span></div>
+                    ${htmlHistorico}
+                </div>
+                <button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 PDF</button>
+            </div>`;
+            
+            container.innerHTML += htmlFinal;
             const bloco = document.getElementById(idBloco);
             const saldoSpan = bloco.querySelector('.val-saldo');
-            saldoSpan.innerText = `R$ ${total.toFixed(2)}`;
-            saldoSpan.style.color = total > 0 ? 'red' : 'green';
+            saldoSpan.style.color = total > 0 && total < 500 ? 'red' : (total >= 500 ? '#854d0e' : 'green');
         }
 
         async function excluirLinha(data, cliente, descricao, valor) {
-            if(!confirm("Tem certeza que deseja excluir este lançamento?")) return;
+            if(!confirm("Deseja excluir este lançamento?")) return;
             try {
-                await fetch(URL_GOOGLE, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({acao: 'excluir', data, cliente, descricao, valor}) 
-                });
-                alert("Pedido de exclusão enviado! Aguarde um momento e busque novamente.");
+                await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({acao: 'excluir', data, cliente, descricao, valor}) });
+                alert("Excluído! Busque novamente para atualizar.");
                 buscarNoSistema();
-            } catch(e) { alert("Erro ao excluir."); }
+            } catch(e) { alert("Erro."); }
+        }
+
+        async function gerarRelatorioDia() {
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            alert("Gerando relatório de: " + dataHoje);
+            try {
+                const resp = await fetch(URL_GOOGLE);
+                const dados = await resp.json();
+                const hojeIso = new Date().toISOString().split('T')[0];
+                
+                let conteudo = `<div style="padding:20px; font-family:sans-serif;">
+                    <h2 style="text-align:center">RELATÓRIO DIÁRIO - MOURA VARIEDADES</h2>
+                    <p style="text-align:center">Data: ${dataHoje}</p><hr>`;
+                
+                let temDados = false;
+                dados.slice(1).forEach(l => {
+                    const dataL = new Date(l[0]).toISOString().split('T')[0];
+                    if(dataL === hojeIso) {
+                        temDados = true;
+                        conteudo += `<p><strong>${l[1]}</strong>: ${l[4]} de R$ ${parseFloat(l[3]).toFixed(2)} (${l[2]})</p>`;
+                    }
+                });
+
+                if(!temDados) return alert("Nenhum lançamento hoje.");
+                
+                conteudo += `</div>`;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = conteudo;
+                html2pdf().set({ margin: 10, filename: `Relatorio_${dataHoje}.pdf` }).from(tempDiv).save();
+            } catch(e) { alert("Erro ao gerar relatório."); }
         }
 
         async function listarClientes() {
@@ -222,7 +278,7 @@
                     div.appendChild(item);
                 });
                 btn.innerText = "❌ FECHAR LISTA";
-            } catch(e) { div.innerHTML = "Erro ao carregar."; btn.innerText = "📂 CARREGAR LISTA"; }
+            } catch(e) { div.innerHTML = "Erro."; btn.innerText = "📂 CARREGAR LISTA"; }
         }
 
         function toggleSanfona(el) {
@@ -236,13 +292,13 @@
             const novoNome = prompt("Novo nome para " + nomeAntigo);
             if (!novoNome) return;
             await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
-            alert("Enviado!");
+            alert("Pedido enviado!");
         }
 
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
             const dados = { data: document.getElementById('data').value, cliente: document.getElementById('cliente').value.trim(), descricao: document.getElementById('descricao').value, valor: parseFloat(document.getElementById('valor').value), tipo: document.getElementById('tipo').value };
-            if(!dados.cliente || !dados.valor) return alert("Dados incompletos!");
+            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
             btn.disabled = true; btn.innerText = "Salvando...";
             try {
                 await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
