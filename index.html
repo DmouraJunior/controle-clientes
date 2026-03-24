@@ -22,8 +22,8 @@
 
         .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
         .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
-        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; }
-        .alerta-debito { background: #fef08a !important; border: 2px solid #facc15 !important; color: #854d0e !important; } /* Estilo de Alerta */
+        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; margin-bottom: 10px; }
+        .alerta-debito { background: #fef08a !important; border: 2px solid #facc15 !important; color: #854d0e !important; }
         
         .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
 
@@ -36,6 +36,16 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .btn-excluir { background: none; color: var(--danger); border: none; cursor: pointer; font-size: 18px; width: auto; padding: 5px; margin: 0; }
+
+        /* Estilos da Tabela no PDF */
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .pdf-table th { background-color: var(--primary); color: white; }
+        .compra-val { color: var(--danger); font-weight: bold; }
+        .pagamento-val { color: var(--success); font-weight: bold; }
+        .pdf-resumo { margin-top: 20px; padding: 15px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; }
+        .pdf-resumo p { margin: 5px 0; }
+        .saldo-final-val { font-size: 16px; font-weight: bold; color: var(--danger); }
     </style>
 </head>
 <body>
@@ -185,33 +195,91 @@
         function renderizarCliente(nome, lista, container) {
             const idBloco = "bloco-" + Math.random().toString(36).substr(2, 9);
             let total = 0;
-            let htmlHistorico = "";
+            let totalComprado = 0;
+            let totalPago = 0;
+            let htmlHistoricoVisivel = "";
+            let htmlTabelaPDF = "";
             
             lista.forEach(item => {
                 const dataFormatada = new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
-                total += (tipo === "Compra" ? valor : -valor);
                 
-                htmlHistorico += `<div class="historico-item">
+                if (tipo === "Compra") {
+                    total += valor;
+                    totalComprado += valor;
+                } else {
+                    total -= valor;
+                    totalPago += valor;
+                }
+                
+                // Histórico Visível (com botão de excluir)
+                htmlHistoricoVisivel += `<div class="historico-item">
                     <div><strong>${dataFormatada}</strong><br><small>${item[2] || ''}</small></div>
                     <div style="display:flex; align-items:center; gap:8px">
                         <span style="color:${tipo==='Compra'?'red':'green'}">R$ ${valor.toFixed(2)}</span>
                         <button class="btn-excluir" onclick="excluirLinha('${item[0]}', '${nome}', '${item[2]}', ${valor})">🗑️</button>
                     </div>
                 </div>`;
+
+                // Tabela para o PDF
+                htmlTabelaPDF += `<tr>
+                    <td>${dataFormatada}</td>
+                    <td>${item[2] || '---'}</td>
+                    <td>${tipo === 'Compra' ? '🛍️ Compra' : '💵 Pagamento'}</td>
+                    <td class="${tipo === 'Compra' ? 'compra-val' : 'pagamento-val'}">R$ ${valor.toFixed(2)}</td>
+                </tr>`;
             });
 
             // Aplica Alerta se total > 500
             const classeAlerta = total >= 500 ? "alerta-debito" : "";
 
+            // Conteúdo final para a página
             let htmlFinal = `<div class="cliente-bloco" id="${idBloco}">
                 <div class="cliente-nome-header">👤 ${nome}</div>
-                <div id="print-${idBloco}">
+                <div id="print-${idBloco}" class="print-container">
+                    <div class="pdf-header" style="display:none; padding: 20px 0; font-family: sans-serif;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 15px;">
+                            <div style="text-align: left;">
+                                <h1 style="margin: 0; color: #111; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">MOURA VARIEDADES</h1>
+                                <p style="margin: 5px 0 0; font-size: 10px; color: #555;">Rua Vila do Forte, nº 201, Cordeiro, Recife-Pe</p>
+                            </div>
+                            <div style="text-align: right; font-size: 10px; color: #555;">
+                                <p style="margin: 0;"><img src="https://img.icons8.com/color/16/000000/whatsapp.png" style="vertical-align:middle;"/> (81) 99938-3019</p>
+                                <p style="margin: 5px 0 0;"><img src="https://img.icons8.com/color/16/000000/instagram-new--v1.png" style="vertical-align:middle;"/> @moura_variedad</p>
+                            </div>
+                        </div>
+                        <h2 style="text-align:center; text-transform:uppercase; font-size: 16px; margin-top: 20px;">EXTRATO DE CONTA DO CLIENTE</h2>
+                        <h3 style="text-align:center; font-size: 18px; color: var(--primary); margin: 5px 0 20px;">👤 ${nome}</h3>
+                    </div>
+
                     <div class="saldo-card ${classeAlerta}"><span>Dívida Atual:</span><span class="val-saldo">R$ ${total.toFixed(2)}</span></div>
-                    ${htmlHistorico}
+                    <div class="historico-visivel">${htmlHistoricoVisivel}</div>
+
+                    <div class="pdf-exclusivo" style="display:none;">
+                        <table class="pdf-table">
+                            <thead>
+                                <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
+                            </thead>
+                            <tbody>
+                                ${htmlTabelaPDF}
+                            </tbody>
+                        </table>
+                        
+                        <div class="pdf-resumo">
+                            <h4 style="margin: 0 0 10px; text-transform:uppercase; font-size: 14px;">RESUMO FINANCEIRO</h4>
+                            <p>🛍️ Total Comprado: <strong style="color:var(--danger)">R$ ${totalComprado.toFixed(2)}</strong></p>
+                            <p>💵 Total Pago/Abatido: <strong style="color:var(--success)">R$ ${totalPago.toFixed(2)}</strong></p>
+                            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+                            <p class="saldo-final">💰 SALDO DEVEDOR FINAL: <span class="saldo-final-val">R$ ${total.toFixed(2)}</span></p>
+                        </div>
+                        
+                        <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #555; border-top: 1px solid #ddd; padding-top: 10px;">
+                            Este extrato é um controle interno da Moura Variedades. Em caso de dúvidas, entre em contato.
+                        </div>
+                    </div>
                 </div>
-                <button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 PDF</button>
+                <button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDFPersonalizado('print-${idBloco}', '${nome}')">📄 PDF PROFISSIONAL</button>
             </div>`;
             
             container.innerHTML += htmlFinal;
@@ -227,6 +295,33 @@
                 alert("Excluído! Busque novamente para atualizar.");
                 buscarNoSistema();
             } catch(e) { alert("Erro."); }
+        }
+
+        function gerarPDFPersonalizado(id, nome) {
+            const elemento = document.getElementById(id);
+            const originalStyle = elemento.getAttribute('style');
+            
+            // Prepara o elemento para o PDF (mostra o que está escondido e esconde o que é exclusivo da tela)
+            elemento.querySelector('.pdf-header').style.display = 'block';
+            elemento.querySelector('.pdf-exclusivo').style.display = 'block';
+            elemento.querySelector('.historico-visivel').style.display = 'none';
+            elemento.querySelector('.saldo-card').style.display = 'none'; // Saldo card original não vai pro PDF
+
+            const opcoes = {
+                margin: 10,
+                filename: `Extrato_Profissional_${nome}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opcoes).from(elemento).save().then(() => {
+                // Restaura o estado original da página após gerar o PDF
+                elemento.querySelector('.pdf-header').style.display = 'none';
+                elemento.querySelector('.pdf-exclusivo').style.display = 'none';
+                elemento.querySelector('.historico-visivel').style.display = 'block';
+                elemento.querySelector('.saldo-card').style.display = 'flex';
+            });
         }
 
         async function gerarRelatorioDia() {
@@ -308,11 +403,6 @@
                 document.getElementById('descricao').value = '';
             } catch(e) { alert("Erro!"); }
             finally { btn.disabled = false; btn.innerText = "💾 SALVAR"; }
-        }
-
-        function gerarPDF(id, nome) {
-            const elemento = document.getElementById(id);
-            html2pdf().set({ margin: 10, filename: `Extrato_${nome}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(elemento).save();
         }
     </script>
 </body>
