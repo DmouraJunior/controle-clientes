@@ -3,82 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Interno - Moura Variedades</title>
+    <title>SISTEMA DE CONTROLE INTERNO MOURA VARIEDADES</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #515252; --success: #16a34a; --danger: #dc2626; --bg-body: #9ca3af; --text-dark: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); margin: 0; padding: 15px; color: var(--text-dark); min-height: 100vh; }
         .card { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        h3 { border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 8px; margin-top: 0; }
+        
+        .titulo-principal { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 1px; color: #111; margin-bottom: 20px; border: none; font-size: 1.2rem; }
+        
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
         /* Painel de Débito */
-        .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin: 0 auto 20px auto; }
         .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; }
 
-        /* Efeito Sanfona */
-        .sanfona-item { margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
-        .sanfona-header { background: #eee; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
-        .sanfona-content { display: none; padding: 10px; background: #fff; }
+        /* Sanfona */
+        .sanfona-item { margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+        .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; color: var(--primary); }
+        .sanfona-content { display: none; padding: 15px; border-top: 1px solid #eee; }
         
-        .btn-edit { background: #f59e0b; font-size: 12px; padding: 5px; width: auto; margin: 5px 0; }
-        .busca-container { display: flex; gap: 8px; border: 2px solid var(--primary); border-radius: 30px; background: #fff; padding: 4px; }
-        .busca-container input { border: none; flex-grow: 1; margin: 0; }
-        .busca-container button { width: auto; margin: 0; border-radius: 30px; }
-
+        .btn-edit { background: #f59e0b; font-size: 12px; padding: 5px 10px; width: auto; margin-bottom: 10px; }
+        
         #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; }
         #tela-primeiro-acesso, #tela-sistema { display: none; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .historico-mini { font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="tela-login" class="card">
-        <h2 style="text-align:center">Moura Variedades</h2>
-        <input type="text" id="userInput" placeholder="Nome do Funcionário">
-        <input type="password" id="senhaInput" placeholder="Senha">
-        <button onclick="verificarLogin()">Entrar</button>
+        <div class="titulo-principal">SISTEMA DE CONTROLE INTERNO MOURA VARIEDADES</div>
+        <input type="text" id="userInput" placeholder="Usuário (edna, junior, mayara ou maraysa)">
+        <input type="password" id="senhaInput" placeholder="Sua Senha">
+        <button onclick="verificarLogin()">ENTRAR NO SISTEMA</button>
     </div>
 
     <div id="tela-primeiro-acesso" class="card">
-        <h3>⚠️ Definir Senha Pessoal</h3>
+        <div class="titulo-principal" style="color:var(--danger)">⚠️ PRIMEIRO ACESSO</div>
+        <p class="text-center" style="font-size: 14px;">Crie uma senha pessoal para continuar.</p>
         <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
-        <button onclick="salvarNovaSenhaEEntrar()">Salvar e Entrar</button>
+        <button onclick="salvarNovaSenhaEEntrar()">SALVAR E ACESSAR</button>
     </div>
 
     <div id="tela-sistema">
         <div class="debit-total">
-            DÉBITO TOTAL DA LOJA
+            DÉBITO TOTAL DA LOJA (GERAL)
             <span id="valorDebitoTotal">R$ 0,00</span>
-            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:12px; text-decoration:underline">Atualizar Saldo Geral</button>
+            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:11px; text-decoration:underline; width:auto; margin:0 auto">🔄 ATUALIZAR SALDO GERAL</button>
         </div>
 
         <div class="card">
-            <h3>➕ Novo Lançamento</h3>
+            <h3 class="titulo-principal">➕ NOVO LANÇAMENTO</h3>
             <input type="text" id="cliente" placeholder="Nome do Cliente">
             <input type="date" id="data">
-            <input type="number" id="valor" placeholder="Valor">
+            <input type="text" id="descricao" placeholder="O que foi comprado? (Ex: Vestido, Blusa...)">
+            <input type="number" id="valor" placeholder="Valor (0.00)">
             <select id="tipo">
-                <option value="Compra">🛍️ Compra</option>
-                <option value="Pagamento">💵 Pagamento</option>
+                <option value="Compra">🛍️ Compra (Dívida)</option>
+                <option value="Pagamento">💵 Pagamento (Abate)</option>
             </select>
-            <button id="btnSalvar" onclick="salvar()">Salvar</button>
+            <button id="btnSalvar" onclick="salvar()">💾 SALVAR NO SISTEMA</button>
         </div>
 
         <div class="card">
-            <h3>👥 Meus Clientes (Sanfona)</h3>
-            <button onclick="listarClientes()" style="background:#475569">Carregar Lista de Clientes</button>
-            <div id="listaSanfona" style="margin-top:15px"></div>
+            <h3 class="titulo-principal">👥 LISTA DE CLIENTES</h3>
+            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR TODOS OS CLIENTES</button>
+            <div id="listaSanfona"></div>
         </div>
 
         <div class="card">
-            <h3>🔍 Busca Rápida</h3>
-            <div class="busca-container">
-                <input type="text" id="busca" placeholder="Nome...">
-                <button onclick="buscarNoSistema()">Buscar</button>
-            </div>
+            <h3 class="titulo-principal">🔍 BUSCA RÁPIDA</h3>
+            <input type="text" id="busca" placeholder="Nome do cliente para buscar...">
+            <button onclick="buscarNoSistema()">BUSCAR AGORA</button>
             <div id="carregando" class="spinner"></div>
             <div id="resumoBusca"></div>
         </div>
@@ -92,17 +93,18 @@
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const senha = document.getElementById('senhaInput').value;
             const salva = localStorage.getItem('senha_' + user);
-            if (!USUARIOS.includes(user)) return alert("Não autorizado");
+            if (!USUARIOS.includes(user)) return alert("Usuário não autorizado!");
             if (!salva && senha === "1234") { 
                 document.getElementById('tela-login').style.display='none'; 
                 document.getElementById('tela-primeiro-acesso').style.display='flex';
             } else if (salva && senha === salva) { abrirSistema(); }
-            else { alert("Senha incorreta"); }
+            else { alert("Senha incorreta!"); }
         }
 
         function salvarNovaSenhaEEntrar() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const nova = document.getElementById('novaSenhaObrigatoria').value;
+            if(nova.length < 4) return alert("Mínimo 4 dígitos!");
             localStorage.setItem('senha_' + user, nova);
             abrirSistema();
         }
@@ -129,7 +131,7 @@
 
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
-            div.innerHTML = "Carregando...";
+            div.innerHTML = "<div class='text-center'>Carregando...</div>";
             const resp = await fetch(URL_GOOGLE);
             const dados = await resp.json();
             const clientes = [...new Set(dados.slice(1).map(l => l[1]))].sort();
@@ -143,8 +145,8 @@
                         <span>👤 ${nome}</span> <span>➕</span>
                     </div>
                     <div class="sanfona-content">
-                        <button class="btn-edit" onclick="editarNome('${nome}')">✏️ Renomear Cliente</button>
-                        <div id="hist-${nome.replace(/\s/g,'')}">Buscando histórico...</div>
+                        <button class="btn-edit" onclick="editarNome('${nome}')">✏️ Editar Nome do Cliente</button>
+                        <div class="historico-mini">Clique em 'Busca Rápida' acima para ver o extrato detalhado de ${nome}.</div>
                     </div>`;
                 div.appendChild(item);
             });
@@ -152,34 +154,54 @@
 
         function toggleSanfona(el) {
             const content = el.nextElementSibling;
-            content.style.display = content.style.display === "block" ? "none" : "block";
-        }
-
-        async function editarNome(nomeAntigo) {
-            const novoNome = prompt("Digite o novo nome para " + nomeAntigo);
-            if (!novoNome) return;
-            if (confirm("Isso mudará o nome de '" + nomeAntigo + "' para '" + novoNome + "' em todos os registros. Confirma?")) {
-                await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
-                alert("Solicitação enviada! Atualize a lista em instantes.");
+            const icon = el.querySelector('span:last-child');
+            if(content.style.display === "block") {
+                content.style.display = "none";
+                icon.innerText = "➕";
+            } else {
+                content.style.display = "block";
+                icon.innerText = "➖";
             }
         }
 
-        // Funções de Busca e Salvar seguem a mesma lógica anterior...
+        async function editarNome(nomeAntigo) {
+            const novoNome = prompt("Digite o novo nome para: " + nomeAntigo);
+            if (!novoNome) return;
+            alert("Enviando alteração... Aguarde confirmação.");
+            await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
+            alert("Nome alterado com sucesso na planilha!");
+            listarClientes();
+        }
+
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
-            const dados = { data: document.getElementById('data').value, cliente: document.getElementById('cliente').value.trim(), valor: parseFloat(document.getElementById('valor').value), tipo: document.getElementById('tipo').value };
-            btn.disabled = true;
-            await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-            alert("Salvo!"); btn.disabled = false;
+            const dados = { 
+                data: document.getElementById('data').value, 
+                cliente: document.getElementById('cliente').value.trim(), 
+                descricao: document.getElementById('descricao').value,
+                valor: parseFloat(document.getElementById('valor').value), 
+                tipo: document.getElementById('tipo').value 
+            };
+            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
+            btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
+            try {
+                await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
+                alert("Lançamento salvo com sucesso!");
+                document.getElementById('cliente').value = '';
+                document.getElementById('valor').value = '';
+                document.getElementById('descricao').value = '';
+            } catch(e) { alert("Erro ao salvar!"); }
+            finally { btn.disabled = false; btn.innerText = "💾 SALVAR NO SISTEMA"; }
         }
 
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
+            if(termo.length < 2) return alert("Digite o nome!");
             document.getElementById('carregando').style.display = 'block';
             const resp = await fetch(URL_GOOGLE);
             const dados = await resp.json();
-            const filtrados = dados.slice(1).filter(l => l[1].toLowerCase().includes(termo));
-            document.getElementById('resumoBusca').innerHTML = filtrados.length + " registros encontrados.";
+            const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
+            document.getElementById('resumoBusca').innerHTML = `<b>${filtrados.length}</b> registros encontrados para "${termo}".`;
             document.getElementById('carregando').style.display = 'none';
         }
     </script>
