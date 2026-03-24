@@ -8,7 +8,18 @@
     <style>
         :root { --primary: #515252; --success: #16a34a; --danger: #dc2626; --bg-body: #9ca3af; --text-dark: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); margin: 0; padding: 15px; color: var(--text-dark); min-height: 100vh; }
-        .card { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        
+        /* Centralização da Tela de Login */
+        #tela-login { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            min-height: 85vh; /* Faz o login ocupar quase toda a altura da tela para centralizar */
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .card { background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; }
         .titulo-principal { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 1px; color: #111; margin-bottom: 20px; font-size: 1.1rem; border: none; }
         
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
@@ -36,11 +47,13 @@
 </head>
 <body>
 
-    <div id="tela-login" class="card">
-        <div class="titulo-principal">SISTEMA DE CONTROLE INTERNO MOURA VARIEDADES</div>
-        <input type="text" id="userInput" placeholder="Usuário">
-        <input type="password" id="senhaInput" placeholder="Senha">
-        <button onclick="verificarLogin()">ENTRAR NO SISTEMA</button>
+    <div id="tela-login">
+        <div class="card">
+            <div class="titulo-principal">SISTEMA DE CONTROLE INTERNO MOURA VARIEDADES</div>
+            <input type="text" id="userInput" placeholder="Usuário">
+            <input type="password" id="senhaInput" placeholder="Senha">
+            <button onclick="verificarLogin()">ENTRAR NO SISTEMA</button>
+        </div>
     </div>
 
     <div id="tela-sistema">
@@ -94,8 +107,6 @@
             const autorizados = ["edna", "junior", "mayara", "maraysa"];
             
             if (!autorizados.includes(user)) return alert("Não autorizado!");
-            
-            // Lógica simplificada: Se for o primeiro acesso ou senha salva bater
             const salva = localStorage.getItem('senha_' + user) || "1234";
             
             if (senha === salva) { 
@@ -108,7 +119,7 @@
         function encerrarSessao() {
             if(confirm("Deseja realmente sair?")) {
                 document.getElementById('tela-sistema').style.display='none';
-                document.getElementById('tela-login').style.display='block';
+                document.getElementById('tela-login').style.display='flex'; // Volta a centralizar
                 document.getElementById('userInput').value = '';
                 document.getElementById('senhaInput').value = '';
             }
@@ -122,8 +133,7 @@
 
         async function calcularDebitoTotal() {
             const span = document.getElementById('valorDebitoTotal');
-            const originalText = span.innerText;
-            span.innerText = "Carregando...";
+            span.innerText = "Calculando...";
             try {
                 const resp = await fetch(URL_GOOGLE);
                 const dados = await resp.json();
@@ -134,18 +144,14 @@
                 });
                 debitoGeralReal = total.toFixed(2);
                 span.innerText = mostrandoDebito ? "R$ " + debitoGeralReal : "****";
-                alert("Dados atualizados com sucesso!");
-            } catch(e) { span.innerText = originalText; alert("Erro ao atualizar."); }
+                alert("Dados atualizados!");
+            } catch(e) { span.innerText = "****"; alert("Erro ao atualizar."); }
         }
 
         function toggleDebitoGeral() {
             const span = document.getElementById('valorDebitoTotal');
             mostrandoDebito = !mostrandoDebito;
-            if (mostrandoDebito) {
-                span.innerText = debitoGeralReal === 0 ? "Clique em Atualizar" : "R$ " + debitoGeralReal;
-            } else {
-                span.innerText = "****";
-            }
+            span.innerText = mostrandoDebito ? (debitoGeralReal === 0 ? "Clique em Atualizar" : "R$ " + debitoGeralReal) : "****";
         }
 
         async function buscarNoSistema() {
@@ -195,17 +201,13 @@
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
             const btn = document.getElementById('btnCarregarLista');
-            
-            // Se a lista já tiver conteúdo, limpa ela (fecha)
             if (div.innerHTML !== "") {
                 div.innerHTML = "";
                 btn.innerText = "📂 CARREGAR LISTA";
                 return;
             }
-
             div.innerHTML = "Carregando...";
             btn.innerText = "⌛ AGUARDE...";
-            
             try {
                 const resp = await fetch(URL_GOOGLE);
                 const dados = await resp.json();
@@ -228,13 +230,8 @@
         function toggleSanfona(el) {
             const content = el.nextElementSibling;
             const icone = el.querySelector('span:last-child');
-            if (content.style.display === "block") {
-                content.style.display = "none";
-                icone.innerText = "➕";
-            } else {
-                content.style.display = "block";
-                icone.innerText = "➖";
-            }
+            content.style.display = content.style.display === "block" ? "none" : "block";
+            icone.innerText = content.style.display === "block" ? "➖" : "➕";
         }
 
         async function editarNome(nomeAntigo) {
