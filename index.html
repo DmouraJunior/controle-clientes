@@ -9,29 +9,28 @@
         :root { --primary: #515252; --success: #16a34a; --danger: #dc2626; --bg-body: #9ca3af; --text-dark: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); margin: 0; padding: 15px; color: var(--text-dark); min-height: 100vh; }
         .card { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        
-        .titulo-principal { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 1px; color: #111; margin-bottom: 20px; border: none; font-size: 1.2rem; }
+        .titulo-principal { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 1px; color: #111; margin-bottom: 20px; font-size: 1.1rem; border: none; }
         
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* Painel de Débito */
         .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin: 0 auto 20px auto; }
         .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; }
 
-        /* Sanfona */
+        /* Sanfona e Busca */
+        .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
+        .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
+        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
+
         .sanfona-item { margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
-        .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; color: var(--primary); }
+        .sanfona-header { background: #f1f5f9; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
         .sanfona-content { display: none; padding: 15px; border-top: 1px solid #eee; }
         
-        .btn-edit { background: #f59e0b; font-size: 12px; padding: 5px 10px; width: auto; margin-bottom: 10px; }
-        
-        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; }
+        #tela-login, #tela-primeiro-acesso, #tela-sistema { max-width: 500px; margin: auto; }
         #tela-primeiro-acesso, #tela-sistema { display: none; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .historico-mini { font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -45,7 +44,6 @@
 
     <div id="tela-primeiro-acesso" class="card">
         <div class="titulo-principal" style="color:var(--danger)">⚠️ PRIMEIRO ACESSO</div>
-        <p class="text-center" style="font-size: 14px;">Crie uma senha pessoal para continuar.</p>
         <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
         <button onclick="salvarNovaSenhaEEntrar()">SALVAR E ACESSAR</button>
     </div>
@@ -71,17 +69,17 @@
         </div>
 
         <div class="card">
-            <h3 class="titulo-principal">👥 LISTA DE CLIENTES</h3>
-            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR TODOS OS CLIENTES</button>
-            <div id="listaSanfona"></div>
-        </div>
-
-        <div class="card">
-            <h3 class="titulo-principal">🔍 BUSCA RÁPIDA</h3>
-            <input type="text" id="busca" placeholder="Nome do cliente para buscar...">
+            <h3 class="titulo-principal">🔍 BUSCA RÁPIDA E EXTRATO</h3>
+            <input type="text" id="busca" placeholder="Nome do cliente para ver débito...">
             <button onclick="buscarNoSistema()">BUSCAR AGORA</button>
             <div id="carregando" class="spinner"></div>
             <div id="resumoBusca"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="titulo-principal">👥 LISTA DE CLIENTES</h3>
+            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR TODOS OS CLIENTES</button>
+            <div id="listaSanfona"></div>
         </div>
     </div>
 
@@ -129,80 +127,108 @@
             span.innerText = "R$ " + totalGeral.toFixed(2);
         }
 
+        async function buscarNoSistema() {
+            const termo = document.getElementById('busca').value.trim().toLowerCase();
+            if(termo.length < 2) return alert("Digite o nome!");
+            const resumoDiv = document.getElementById('resumoBusca');
+            document.getElementById('carregando').style.display = 'block';
+            resumoDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(URL_GOOGLE);
+                const dados = await response.json();
+                const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
+                
+                if (filtrados.length === 0) {
+                    resumoDiv.innerHTML = "Nenhum cliente encontrado.";
+                } else {
+                    const grupos = {};
+                    filtrados.forEach(item => {
+                        const nome = item[1];
+                        if (!grupos[nome]) grupos[nome] = [];
+                        grupos[nome].push(item);
+                    });
+                    for (let nomeCliente in grupos) {
+                        renderizarCliente(nomeCliente, grupos[nomeCliente], resumoDiv);
+                    }
+                }
+            } catch (e) { alert("Erro na busca."); }
+            finally { document.getElementById('carregando').style.display = 'none'; }
+        }
+
+        function renderizarCliente(nome, lista, container) {
+            const idBloco = "bloco-" + Math.random().toString(36).substr(2, 9);
+            let total = 0;
+            let html = `<div class="cliente-bloco" id="${idBloco}">
+                <div class="cliente-nome-header">👤 ${nome}</div>
+                <div id="print-${idBloco}">
+                    <div class="saldo-card"><span>Dívida Atual:</span><span class="val-saldo"></span></div>`;
+
+            lista.forEach(item => {
+                const valor = parseFloat(item[3]);
+                const tipo = item[4];
+                total += (tipo === "Compra" ? valor : -valor);
+                html += `<div class="historico-item">
+                    <div><strong>${new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</strong><br><small>${item[2] || ''}</small></div>
+                    <span style="color: ${tipo === 'Compra' ? 'red' : 'green'}">R$ ${valor.toFixed(2)}</span>
+                </div>`;
+            });
+
+            html += `</div><button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 GERAR PDF DE ${nome}</button></div>`;
+            container.innerHTML += html;
+            const bloco = document.getElementById(idBloco);
+            const saldoSpan = bloco.querySelector('.val-saldo');
+            saldoSpan.innerText = `R$ ${total.toFixed(2)}`;
+            saldoSpan.style.color = total > 0 ? 'red' : 'green';
+        }
+
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
-            div.innerHTML = "<div class='text-center'>Carregando...</div>";
+            div.innerHTML = "Carregando...";
             const resp = await fetch(URL_GOOGLE);
             const dados = await resp.json();
             const clientes = [...new Set(dados.slice(1).map(l => l[1]))].sort();
-            
             div.innerHTML = "";
             clientes.forEach(nome => {
                 const item = document.createElement('div');
                 item.className = 'sanfona-item';
-                item.innerHTML = `
-                    <div class="sanfona-header" onclick="toggleSanfona(this)">
-                        <span>👤 ${nome}</span> <span>➕</span>
-                    </div>
-                    <div class="sanfona-content">
-                        <button class="btn-edit" onclick="editarNome('${nome}')">✏️ Editar Nome do Cliente</button>
-                        <div class="historico-mini">Clique em 'Busca Rápida' acima para ver o extrato detalhado de ${nome}.</div>
-                    </div>`;
+                item.innerHTML = `<div class="sanfona-header" onclick="toggleSanfona(this)"><span>👤 ${nome}</span> <span>➕</span></div>
+                    <div class="sanfona-content"><button style="background:#f59e0b;font-size:12px;width:auto" onclick="editarNome('${nome}')">✏️ RENOMEAR CLIENTE</button></div>`;
                 div.appendChild(item);
             });
         }
 
         function toggleSanfona(el) {
             const content = el.nextElementSibling;
-            const icon = el.querySelector('span:last-child');
-            if(content.style.display === "block") {
-                content.style.display = "none";
-                icon.innerText = "➕";
-            } else {
-                content.style.display = "block";
-                icon.innerText = "➖";
-            }
+            content.style.display = content.style.display === "block" ? "none" : "block";
+            el.querySelector('span:last-child').innerText = content.style.display === "block" ? "➖" : "➕";
         }
 
         async function editarNome(nomeAntigo) {
-            const novoNome = prompt("Digite o novo nome para: " + nomeAntigo);
+            const novoNome = prompt("Novo nome para " + nomeAntigo);
             if (!novoNome) return;
-            alert("Enviando alteração... Aguarde confirmação.");
             await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
-            alert("Nome alterado com sucesso na planilha!");
-            listarClientes();
+            alert("Solicitação enviada!");
         }
 
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
-            const dados = { 
-                data: document.getElementById('data').value, 
-                cliente: document.getElementById('cliente').value.trim(), 
-                descricao: document.getElementById('descricao').value,
-                valor: parseFloat(document.getElementById('valor').value), 
-                tipo: document.getElementById('tipo').value 
-            };
+            const dados = { data: document.getElementById('data').value, cliente: document.getElementById('cliente').value.trim(), descricao: document.getElementById('descricao').value, valor: parseFloat(document.getElementById('valor').value), tipo: document.getElementById('tipo').value };
             if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
             btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
             try {
                 await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-                alert("Lançamento salvo com sucesso!");
+                alert("Salvo!");
                 document.getElementById('cliente').value = '';
                 document.getElementById('valor').value = '';
                 document.getElementById('descricao').value = '';
-            } catch(e) { alert("Erro ao salvar!"); }
+            } catch(e) { alert("Erro!"); }
             finally { btn.disabled = false; btn.innerText = "💾 SALVAR NO SISTEMA"; }
         }
 
-        async function buscarNoSistema() {
-            const termo = document.getElementById('busca').value.trim().toLowerCase();
-            if(termo.length < 2) return alert("Digite o nome!");
-            document.getElementById('carregando').style.display = 'block';
-            const resp = await fetch(URL_GOOGLE);
-            const dados = await resp.json();
-            const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
-            document.getElementById('resumoBusca').innerHTML = `<b>${filtrados.length}</b> registros encontrados para "${termo}".`;
-            document.getElementById('carregando').style.display = 'none';
+        function gerarPDF(id, nome) {
+            const elemento = document.getElementById(id);
+            html2pdf().set({ margin: 10, filename: `Extrato_${nome}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(elemento).save();
         }
     </script>
 </body>
