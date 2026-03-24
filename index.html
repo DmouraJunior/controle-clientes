@@ -62,7 +62,7 @@
         <div class="debit-total">
             <button onclick="encerrarSessao()" style="position: absolute; top: 10px; right: 10px; width: auto; padding: 4px 8px; font-size: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #94a3b8; margin: 0;">SAIR</button>
             
-            <div id="labelDebito">DÉBITO TOTAL DA LOJA (GERAL)</div>
+            <div id="labelDebito">DÉBITO GERAL DA LOJA</div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <span id="valorDebitoTotal">****</span>
                 <button class="btn-toggle-view" onclick="toggleDebitoGeral()">👁️</button>
@@ -272,7 +272,7 @@
                         </div>
                     </div>
                 </div>
-                <button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDFPersonalizado('print-${idBloco}', '${nome}')">📄 PDF PROFISSIONAL</button>
+                <button style="background:#475569;margin-top:10px;font-size:13px" onclick="gerarPDFPersonalizado('print-${idBloco}', '${nome}')">📄 GERAR PDF</button>
             </div>`;
             
             container.innerHTML += htmlFinal;
