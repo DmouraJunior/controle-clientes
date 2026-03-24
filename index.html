@@ -14,12 +14,10 @@
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* Painel de Débito com Olhinho */
         .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin: 0 auto 20px auto; position: relative; }
         .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; margin: 5px 0; }
         .btn-toggle-view { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 20px; width: auto; padding: 0; margin: 0; display: inline-block; }
 
-        /* Estilos da Busca e Listagem */
         .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 12px; margin-top: 15px; background: #fff; }
         .cliente-nome-header { background: var(--primary); padding: 8px; border-radius: 6px; margin: -12px -12px 10px -12px; font-weight: bold; color: white; text-align: center; }
         .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; border: 1px solid #e2e8f0; }
@@ -32,6 +30,8 @@
         #tela-sistema { display: none; max-width: 500px; margin: auto; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-encerrar { background: var(--danger); margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -43,13 +43,9 @@
         <button onclick="verificarLogin()">ENTRAR NO SISTEMA</button>
     </div>
 
-    <div id="tela-primeiro-acesso" class="card">
-        <div class="titulo-principal" style="color:var(--danger)">⚠️ PRIMEIRO ACESSO</div>
-        <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
-        <button onclick="salvarNovaSenhaEEntrar()">SALVAR E ACESSAR</button>
-    </div>
-
     <div id="tela-sistema">
+        <button class="btn-encerrar" onclick="encerrarSessao()">🔴 ENCERRAR SESSÃO</button>
+
         <div class="debit-total">
             DÉBITO TOTAL DA LOJA (GERAL)
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -82,7 +78,7 @@
 
         <div class="card">
             <h3 class="titulo-principal">👥 LISTA DE CLIENTES</h3>
-            <button onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR LISTA</button>
+            <button id="btnCarregarLista" onclick="listarClientes()" style="background:#475569; margin-bottom:15px">📂 CARREGAR LISTA</button>
             <div id="listaSanfona"></div>
         </div>
     </div>
@@ -95,32 +91,35 @@
         function verificarLogin() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const senha = document.getElementById('senhaInput').value;
-            const salva = localStorage.getItem('senha_' + user);
             const autorizados = ["edna", "junior", "mayara", "maraysa"];
+            
             if (!autorizados.includes(user)) return alert("Não autorizado!");
-            if (!salva && senha === "1234") { 
-                document.getElementById('tela-login').style.display='none'; 
-                document.getElementById('tela-primeiro-acesso').style.display='flex';
-            } else if (salva && senha === salva) { abrirSistema(); }
-            else { alert("Senha incorreta!"); }
+            
+            // Lógica simplificada: Se for o primeiro acesso ou senha salva bater
+            const salva = localStorage.getItem('senha_' + user) || "1234";
+            
+            if (senha === salva) { 
+                abrirSistema(); 
+            } else { 
+                alert("Senha incorreta!"); 
+            }
         }
 
-        function salvarNovaSenhaEEntrar() {
-            const user = document.getElementById('userInput').value.trim().toLowerCase();
-            const nova = document.getElementById('novaSenhaObrigatoria').value;
-            if(nova.length < 4) return alert("Mínimo 4 dígitos!");
-            localStorage.setItem('senha_' + user, nova);
-            abrirSistema();
+        function encerrarSessao() {
+            if(confirm("Deseja realmente sair?")) {
+                document.getElementById('tela-sistema').style.display='none';
+                document.getElementById('tela-login').style.display='block';
+                document.getElementById('userInput').value = '';
+                document.getElementById('senhaInput').value = '';
+            }
         }
 
         function abrirSistema() {
             document.getElementById('tela-login').style.display='none';
-            document.getElementById('tela-primeiro-acesso').style.display='none';
             document.getElementById('tela-sistema').style.display='block';
             document.getElementById('data').valueAsDate = new Date();
         }
 
-        // LÓGICA DO OLHINHO NO DÉBITO GERAL
         async function calcularDebitoTotal() {
             const span = document.getElementById('valorDebitoTotal');
             const originalText = span.innerText;
@@ -149,7 +148,6 @@
             }
         }
 
-        // BUSCA E EXTRATO
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
             if(termo.length < 2) return alert("Digite o nome!");
@@ -194,21 +192,37 @@
             saldoSpan.style.color = total > 0 ? 'red' : 'green';
         }
 
-        // LISTA SANFONA COM FECHAMENTO
         async function listarClientes() {
             const div = document.getElementById('listaSanfona');
+            const btn = document.getElementById('btnCarregarLista');
+            
+            // Se a lista já tiver conteúdo, limpa ela (fecha)
+            if (div.innerHTML !== "") {
+                div.innerHTML = "";
+                btn.innerText = "📂 CARREGAR LISTA";
+                return;
+            }
+
             div.innerHTML = "Carregando...";
-            const resp = await fetch(URL_GOOGLE);
-            const dados = await resp.json();
-            const clientes = [...new Set(dados.slice(1).map(l => l[1]))].sort();
-            div.innerHTML = "";
-            clientes.forEach(nome => {
-                const item = document.createElement('div');
-                item.className = 'sanfona-item';
-                item.innerHTML = `<div class="sanfona-header" onclick="toggleSanfona(this)"><span>👤 ${nome}</span> <span>➕</span></div>
-                    <div class="sanfona-content"><button style="background:#f59e0b;font-size:12px;width:auto" onclick="editarNome('${nome}')">✏️ RENOMEAR</button></div>`;
-                div.appendChild(item);
-            });
+            btn.innerText = "⌛ AGUARDE...";
+            
+            try {
+                const resp = await fetch(URL_GOOGLE);
+                const dados = await resp.json();
+                const clientes = [...new Set(dados.slice(1).map(l => l[1]))].sort();
+                div.innerHTML = "";
+                clientes.forEach(nome => {
+                    const item = document.createElement('div');
+                    item.className = 'sanfona-item';
+                    item.innerHTML = `<div class="sanfona-header" onclick="toggleSanfona(this)"><span>👤 ${nome}</span> <span>➕</span></div>
+                        <div class="sanfona-content"><button style="background:#f59e0b;font-size:12px;width:auto" onclick="editarNome('${nome}')">✏️ RENOMEAR</button></div>`;
+                    div.appendChild(item);
+                });
+                btn.innerText = "❌ FECHAR LISTA";
+            } catch(e) {
+                div.innerHTML = "Erro ao carregar.";
+                btn.innerText = "📂 CARREGAR LISTA";
+            }
         }
 
         function toggleSanfona(el) {
