@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Controle de Clientes</title>
+    <title>Sistema de Gestão - Clientes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: #1e293b; font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        h2 { margin-top: 0; color: #1e293b; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        button:active { transform: scale(0.98); }
         
-        /* Telas */
-        #tela-login { display: flex; flex-direction: column; justify-content: center; height: 80vh; max-width: 400px; margin: auto; }
+        /* Campo de senha com olhinho */
+        .password-container { position: relative; }
+        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; background: none; border: none; color: #64748b; width: auto; padding: 0; margin: 0; }
+
+        #tela-login { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; max-width: 400px; margin: auto; }
         #tela-sistema { display: none; }
 
         .busca-container { display: flex; gap: 10px; align-items: center; }
@@ -27,18 +29,22 @@
 
         .cliente-bloco { border: 2px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 20px; background: #fff; }
         .cliente-nome-header { background: #f1f5f9; padding: 8px; border-radius: 6px; margin: -10px -10px 10px -10px; font-weight: bold; color: var(--primary); }
-        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; margin-bottom: 10px; }
+        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; }
         .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
-        .btn-pdf { background: #475569; margin-top: 10px; font-size: 14px; }
+        .config-section { background: #fef2f2; border: 1px dashed #fca5a5; }
     </style>
 </head>
 <body>
 
     <div id="tela-login" class="card">
-        <h2 style="text-align:center; border:none;">🔐 Acesso Restrito</h2>
-        <p style="text-align:center; color: #64748b;">Digite a senha para acessar o sistema de clientes.</p>
-        <input type="password" id="senhaInput" placeholder="Sua Senha">
-        <button onclick="verificarSenha()">Entrar no Sistema</button>
+        <h2 style="justify-content:center; border:none;">🔐 Acesso ao Sistema</h2>
+        <input type="text" id="userInput" placeholder="Usuário / Login">
+        <div class="password-container">
+            <input type="password" id="senhaInput" placeholder="Sua Senha">
+            <button type="button" class="toggle-password" onclick="toggleVisibility('senhaInput')">👁️</button>
+        </div>
+        <button onclick="verificarAcesso()">Entrar</button>
+        <p style="font-size: 12px; text-align: center; color: #94a3b8; margin-top: 15px;">Senha padrão inicial: 1234</p>
     </div>
 
     <div id="tela-sistema">
@@ -46,39 +52,70 @@
             <h2>➕ Novo Lançamento</h2>
             <input type="text" id="cliente" placeholder="Nome do Cliente">
             <input type="date" id="data">
-            <input type="text" id="descricao" placeholder="Ex: Vestido, Blusa...">
+            <input type="text" id="descricao" placeholder="Descrição (ex: Venda)">
             <input type="number" id="valor" placeholder="Valor (0.00)">
             <select id="tipo">
                 <option value="Compra">🛍️ Compra (Dívida)</option>
                 <option value="Pagamento">💵 Pagamento (Abate)</option>
             </select>
-            <button id="btnSalvar" onclick="salvar()">💾 Salvar Lançamento</button>
+            <button id="btnSalvar" onclick="salvar()">💾 Salvar</button>
         </div>
 
         <div class="card">
             <h2>🔍 Buscar Cliente</h2>
             <div class="busca-container">
-                <input type="text" id="busca" placeholder="Nome do cliente...">
-                <button id="btnBuscar" onclick="buscarNoSistema()">Buscar</button>
+                <input type="text" id="busca" placeholder="Nome...">
+                <button onclick="buscarNoSistema()">Buscar</button>
             </div>
             <div id="carregando" class="spinner"></div>
             <div id="resumo"></div>
+        </div>
+
+        <div class="card config-section">
+            <h2>⚙️ Alterar Minha Senha</h2>
+            <p style="font-size: 12px; margin-bottom: 10px;">A nova senha ficará salva apenas neste aparelho.</p>
+            <div class="password-container">
+                <input type="password" id="novaSenha" placeholder="Nova Senha">
+                <button type="button" class="toggle-password" onclick="toggleVisibility('novaSenha')">👁️</button>
+            </div>
+            <button style="background: var(--danger);" onclick="redefinirSenha()">Atualizar Senha</button>
         </div>
     </div>
 
     <script>
         const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
-        const SENHA_MESTRA = "1234"; // <--- MUDE SUA SENHA AQUI
+        const SENHA_PADRAO = "1234";
 
-        function verificarSenha() {
+        // Alternar visualização da senha
+        function toggleVisibility(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        function verificarAcesso() {
+            const user = document.getElementById('userInput').value;
             const senhaDigitada = document.getElementById('senhaInput').value;
-            if(senhaDigitada === SENHA_MESTRA) {
+            
+            // Busca se existe senha salva no celular, se não, usa a padrão
+            const senhaSalva = localStorage.getItem('senha_sistema') || SENHA_PADRAO;
+
+            if(user.trim() !== "" && senhaDigitada === senhaSalva) {
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('tela-sistema').style.display = 'block';
                 document.getElementById('data').valueAsDate = new Date();
             } else {
-                alert("Senha incorreta!");
+                alert("Usuário ou Senha incorretos!");
             }
+        }
+
+        function redefinirSenha() {
+            const nova = document.getElementById('novaSenha').value;
+            if(nova.length < 4) return alert("A senha deve ter pelo menos 4 dígitos!");
+            
+            // Salva na memória do navegador
+            localStorage.setItem('senha_sistema', nova);
+            alert("Senha alterada com sucesso! Use a nova senha no próximo login.");
+            document.getElementById('novaSenha').value = "";
         }
 
         async function salvar() {
@@ -90,60 +127,50 @@
                 valor: parseFloat(document.getElementById('valor').value),
                 tipo: document.getElementById('tipo').value
             };
-            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
-            btn.disabled = true; btn.innerText = "⏳ Enviando...";
+            if(!dados.cliente || !dados.valor) return alert("Preencha tudo!");
+            btn.disabled = true; btn.innerText = "⏳...";
             try {
                 await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
                 alert("Salvo!");
                 document.getElementById('cliente').value = '';
                 document.getElementById('valor').value = '';
-                btn.disabled = false; btn.innerText = "💾 Salvar Lançamento";
-            } catch (e) { alert("Erro!"); btn.disabled = false; }
+            } catch (e) { alert("Erro!"); }
+            finally { btn.disabled = false; btn.innerText = "💾 Salvar"; }
         }
 
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
-            const spinner = document.getElementById('carregando');
             const resumoDiv = document.getElementById('resumo');
             if(termo.length < 2) return alert("Digite o nome!");
-
-            spinner.style.display = 'block';
+            document.getElementById('carregando').style.display = 'block';
             resumoDiv.innerHTML = '';
-
             try {
                 const response = await fetch(URL_GOOGLE);
                 const dados = await response.json();
                 const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
+                
+                const grupos = {};
+                filtrados.forEach(item => {
+                    const nome = item[1];
+                    if (!grupos[nome]) grupos[nome] = [];
+                    grupos[nome].push(item);
+                });
 
-                if (filtrados.length === 0) {
-                    alert("Nenhum cliente encontrado.");
-                } else {
-                    // Agrupar por nome exato do cliente
-                    const grupos = {};
-                    filtrados.forEach(item => {
-                        const nome = item[1];
-                        if (!grupos[nome]) grupos[nome] = [];
-                        grupos[nome].push(item);
-                    });
-
-                    // Criar um bloco para cada cliente encontrado
-                    for (let nomeCliente in grupos) {
-                        renderizarCliente(nomeCliente, grupos[nomeCliente]);
-                    }
+                for (let nomeCliente in grupos) {
+                    renderizarCliente(nomeCliente, grupos[nomeCliente]);
                 }
             } catch (e) { alert("Erro na busca."); }
-            finally { spinner.style.display = 'none'; }
+            finally { document.getElementById('carregando').style.display = 'none'; }
         }
 
         function renderizarCliente(nome, lista) {
             const resumoDiv = document.getElementById('resumo');
-            const idBloco = "bloco-" + nome.replace(/\s+/g, '-');
+            const idBloco = "bloco-" + Math.random().toString(36).substr(2, 9);
             let total = 0;
-            
             let html = `<div class="cliente-bloco" id="${idBloco}">
                 <div class="cliente-nome-header">👤 ${nome}</div>
-                <div id="conteudo-${idBloco}">
-                <div class="saldo-card"><span>Dívida:</span><span class="val-saldo">R$ 0,00</span></div>`;
+                <div id="print-${idBloco}">
+                    <div class="saldo-card"><span>Dívida Total:</span><span class="val-saldo"></span></div>`;
 
             lista.forEach(item => {
                 const valor = parseFloat(item[3]);
@@ -154,11 +181,7 @@
                     <span style="color: ${tipo === 'Compra' ? 'red' : 'green'}">R$ ${valor.toFixed(2)}</span>
                 </div>`;
             });
-
-            html += `</div>
-                <button class="btn-pdf" onclick="gerarPDF('${idBloco}', '${nome}')">📄 PDF para ${nome}</button>
-            </div>`;
-            
+            html += `</div><button class="btn-pdf" style="background:#475569;margin-top:10px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 Gerar PDF</button></div>`;
             resumoDiv.innerHTML += html;
             const bloco = document.getElementById(idBloco);
             const saldoSpan = bloco.querySelector('.val-saldo');
@@ -167,15 +190,8 @@
         }
 
         function gerarPDF(id, nome) {
-            const elemento = document.getElementById("conteudo-" + id);
-            const options = {
-                margin: 10,
-                filename: `Historico_${nome}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(options).from(elemento).save();
+            const elemento = document.getElementById(id);
+            html2pdf().set({ margin: 10, filename: `Extrato_${nome}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(elemento).save();
         }
     </script>
 </body>
