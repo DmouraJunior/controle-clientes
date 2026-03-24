@@ -3,42 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Restrito</title>
+    <title>Sistema de Controle Interno - Moura Variedades</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: #1e293b; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        /* PALETA DE CORES MOURA (Fundo Escuro) */
+        :root { 
+            --primary: #515252; /* Cinza do logo */
+            --success: #16a34a; 
+            --danger: #dc2626; 
+            --bg-body: #9ca3af; /* Cinza-claro de fundo */
+            --bg-card: #e5e7eb; /* Cinza-médio dos campos */
+            --text: #ffffff; /* Texto branco */
+            --text-dark: #1e293b;
+        }
+        body { 
+            font-family: -apple-system, sans-serif; 
+            background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); 
+            margin: 0; padding: 15px; color: var(--text-dark); 
+            min-height: 100vh;
+        }
+        .card { 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 25px; border-radius: 12px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
+            margin-bottom: 25px; 
+            max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        h1, h2, h3 { 
+            margin-top: 0; color: var(--text-dark); 
+            border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; 
+        }
+        .text-center { text-align: center; }
+        .titulo-moura { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; color: #111; }
+        .subtitulo-moura { font-size: 0.8rem; color: #444; margin-top: 0; margin-bottom: 20px;}
+
+        input, select, button { 
+            width: 100%; padding: 14px; margin: 10px 0; 
+            border: 1px solid #d1d5db; border-radius: 8px; 
+            font-size: 16px; outline: none; box-sizing: border-box; 
+        }
+        button { 
+            background: var(--primary); color: white; border: none; 
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:active { transform: scale(0.98); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
         
         .password-container { position: relative; }
-        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; background: none; border: none; color: #64748b; width: auto; padding: 0; margin: 0; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 22px; background: none; border: none; color: #6b7280; width: auto; padding: 0; margin: 0; }
 
-        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; max-width: 400px; margin: auto; }
+        /* Estilo da Barra de Busca MOURA Fashion */
+        .busca-container { 
+            display: flex; gap: 10px; align-items: center; 
+            border: 2px solid var(--primary); border-radius: 30px; 
+            background: #fff; padding: 2px 5px; margin: 15px 0; 
+        }
+        .busca-container input { flex-grow: 1; margin: 0; border: none; border-radius: 30px; }
+        .busca-container button { width: auto; margin: 0; border-radius: 30px; padding: 10px 20px; font-size: 14px;}
+
+        /* Telas */
+        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 90vh;}
         #tela-primeiro-acesso, #tela-sistema { display: none; }
 
-        .busca-container { display: flex; gap: 10px; align-items: center; }
-        .busca-container input { flex-grow: 1; margin: 0; }
-        .busca-container button { width: auto; margin: 0; padding: 12px 20px; }
-
-        .spinner { display: none; border: 4px solid rgba(0, 0, 0, 0.1); width: 30px; height: 30px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 15px auto; }
+        .spinner { display: none; border: 4px solid rgba(0, 0, 0, 0.1); width: 35px; height: 35px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 25px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .cliente-bloco { border: 2px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 20px; background: #fff; }
-        .cliente-nome-header { background: #f1f5f9; padding: 8px; border-radius: 6px; margin: -10px -10px 10px -10px; font-weight: bold; color: var(--primary); }
-        .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; }
-        .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
+        .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.8); }
+        .cliente-nome-header { background: var(--primary); padding: 10px; border-radius: 6px; margin: -15px -15px 15px -15px; font-weight: bold; color: white; }
+        .saldo-card { display: flex; justify-content: space-between; padding: 12px; background: #fff; border-radius: 8px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .historico-item { padding: 12px; border-bottom: 1px solid #d1d5db; display: flex; justify-content: space-between; font-size: 0.9rem; color: #111;}
     </style>
 </head>
 <body>
 
     <div id="tela-login" class="card">
-        <h2 style="justify-content:center; border:none;">🔐 Login Autorizado</h2>
-        <input type="text" id="userInput" placeholder="Seu Nome (edna, junior...)">
+        <p class="titulo-moura text-center">sistema de controle interno</p>
+        <p class="subtitulo-moura text-center">Moura Variedades</p>
+        <input type="text" id="userInput" placeholder="Digite seu Nome Autorizado (edna, junior...)">
         <div class="password-container">
-            <input type="password" id="senhaInput" placeholder="Sua Senha">
+            <input type="password" id="senhaInput" placeholder="Sua Senha de Acesso">
             <button type="button" class="toggle-password" onclick="toggleVisibility('senhaInput')">👁️</button>
         </div>
         <button onclick="verificarLogin()">Entrar</button>
@@ -46,9 +89,9 @@
 
     <div id="tela-primeiro-acesso" class="card">
         <h2 style="color: var(--danger); border-color: #fee2e2;">⚠️ Criar Nova Senha</h2>
-        <p style="font-size: 14px; color: #64748b;">Olá! Como é seu primeiro acesso, crie uma senha segura agora.</p>
+        <p style="font-size: 14px; color: #1e293b;">Olá! Como é seu primeiro acesso, crie uma senha segura agora.</p>
         <div class="password-container">
-            <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
+            <input type="password" id="novaSenhaObrigatoria" placeholder="Crie sua Nova Senha Pessoal">
             <button type="button" class="toggle-password" onclick="toggleVisibility('novaSenhaObrigatoria')">👁️</button>
         </div>
         <button style="background: var(--success);" onclick="salvarNovaSenhaEEntrar()">Salvar e Acessar Sistema</button>
@@ -57,24 +100,26 @@
     <div id="tela-sistema">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="border:none; margin:0;">➕ Novo Lançamento</h2>
-                <button onclick="location.reload()" style="width: auto; padding: 5px 10px; background: #64748b;">Sair</button>
+                <p class="titulo-moura" style="border:none; margin:0;">sistema de controle interno</p>
+                <button onclick="location.reload()" style="width: auto; padding: 5px 12px; background: #64748b; border-radius: 30px; font-size: 11px;">Sair</button>
             </div>
+            <p class="subtitulo-moura" style="margin-top:-10px; margin-bottom:15px">Moura Variedades</p>
+            <h3>➕ Novo Lançamento</h3>
             <input type="text" id="cliente" placeholder="Nome do Cliente">
             <input type="date" id="data">
-            <input type="text" id="descricao" placeholder="Descrição">
+            <input type="text" id="descricao" placeholder="Descrição (ex: Compra de Vestido)">
             <input type="number" id="valor" placeholder="Valor (0.00)">
             <select id="tipo">
                 <option value="Compra">🛍️ Compra (Dívida)</option>
                 <option value="Pagamento">💵 Pagamento (Abate)</option>
             </select>
-            <button id="btnSalvar" onclick="salvar()">💾 Salvar</button>
+            <button id="btnSalvar" onclick="salvar()">💾 Salvar Lançamento</button>
         </div>
 
         <div class="card">
-            <h2>🔍 Buscar Cliente</h2>
+            <h3>🔍 Buscar Cliente e Histórico</h3>
             <div class="busca-container">
-                <input type="text" id="busca" placeholder="Nome do cliente...">
+                <input type="text" id="busca" placeholder="Digite o nome do cliente...">
                 <button onclick="buscarNoSistema()">Buscar</button>
             </div>
             <div id="carregando" class="spinner"></div>
@@ -98,35 +143,20 @@
             const senhaDigitada = document.getElementById('senhaInput').value;
             const senhaSalva = localStorage.getItem('senha_' + user);
 
-            // Verifica se o usuário está na lista
-            if (!USUARIOS_AUTORIZADOS.includes(user)) {
-                return alert("Usuário não autorizado!");
-            }
-
-            // Primeiro acesso (senha 1234)
+            if (!USUARIOS_AUTORIZADOS.includes(user)) { return alert("Usuário não autorizado!"); }
             if (!senhaSalva && senhaDigitada === SENHA_PADRAO) {
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('tela-primeiro-acesso').style.display = 'flex';
                 return;
             }
-
-            // Acesso com senha personalizada
-            if (senhaSalva && senhaDigitada === senhaSalva) {
-                abrirSistema();
-                return;
-            }
-
-            alert("Senha incorreta para o usuário " + user);
+            if (senhaSalva && senhaDigitada === senhaSalva) { abrirSistema(); return; }
+            alert("Senha incorreta.");
         }
 
         function salvarNovaSenhaEEntrar() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const nova = document.getElementById('novaSenhaObrigatoria').value;
-            
-            if (nova.length < 4 || nova === "1234") {
-                return alert("Crie uma senha de 4 dígitos diferente de 1234.");
-            }
-            
+            if (nova.length < 4 || nova === "1234") { return alert("Crie uma senha de 4 dígitos diferente de 1234."); }
             localStorage.setItem('senha_' + user, nova);
             alert("Senha definida com sucesso!");
             abrirSistema();
@@ -139,7 +169,6 @@
             document.getElementById('data').valueAsDate = new Date();
         }
 
-        // --- FUNÇÕES DE DADOS ---
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
             const dados = {
@@ -170,17 +199,9 @@
                 const response = await fetch(URL_GOOGLE);
                 const dados = await response.json();
                 const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
-                
                 const grupos = {};
-                filtrados.forEach(item => {
-                    const nome = item[1];
-                    if (!grupos[nome]) grupos[nome] = [];
-                    grupos[nome].push(item);
-                });
-
-                for (let nomeCliente in grupos) {
-                    renderizarCliente(nomeCliente, grupos[nomeCliente]);
-                }
+                filtrados.forEach(item => { const nome = item[1]; if (!grupos[nome]) grupos[nome] = []; grupos[nome].push(item); });
+                for (let nomeCliente in grupos) { renderizarCliente(nomeCliente, grupos[nomeCliente]); }
             } catch (e) { alert("Erro ao buscar."); }
             finally { document.getElementById('carregando').style.display = 'none'; }
         }
@@ -192,7 +213,7 @@
             let html = `<div class="cliente-bloco" id="${idBloco}">
                 <div class="cliente-nome-header">👤 ${nome}</div>
                 <div id="print-${idBloco}">
-                    <div class="saldo-card"><span>Dívida Total:</span><span class="val-saldo"></span></div>`;
+                    <div class="saldo-card"><span>Dívida Total Atual:</span><span class="val-saldo"></span></div>`;
             lista.forEach(item => {
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
