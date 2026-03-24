@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Clientes</title>
+    <title>Sistema de Gestão - Restrito</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; --text: #1e293b; }
@@ -13,12 +13,11 @@
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* Campo de senha com olhinho */
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; background: none; border: none; color: #64748b; width: auto; padding: 0; margin: 0; }
 
-        #tela-login { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; max-width: 400px; margin: auto; }
-        #tela-sistema { display: none; }
+        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; max-width: 400px; margin: auto; }
+        #tela-primeiro-acesso, #tela-sistema { display: none; }
 
         .busca-container { display: flex; gap: 10px; align-items: center; }
         .busca-container input { flex-grow: 1; margin: 0; }
@@ -31,28 +30,39 @@
         .cliente-nome-header { background: #f1f5f9; padding: 8px; border-radius: 6px; margin: -10px -10px 10px -10px; font-weight: bold; color: var(--primary); }
         .saldo-card { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 8px; font-weight: bold; }
         .historico-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
-        .config-section { background: #fef2f2; border: 1px dashed #fca5a5; }
     </style>
 </head>
 <body>
 
     <div id="tela-login" class="card">
-        <h2 style="justify-content:center; border:none;">🔐 Acesso ao Sistema</h2>
-        <input type="text" id="userInput" placeholder="Usuário / Login">
+        <h2 style="justify-content:center; border:none;">🔐 Login Autorizado</h2>
+        <input type="text" id="userInput" placeholder="Seu Nome (edna, junior...)">
         <div class="password-container">
             <input type="password" id="senhaInput" placeholder="Sua Senha">
             <button type="button" class="toggle-password" onclick="toggleVisibility('senhaInput')">👁️</button>
         </div>
-        <button onclick="verificarAcesso()">Entrar</button>
-        <p style="font-size: 12px; text-align: center; color: #94a3b8; margin-top: 15px;">Senha padrão inicial: 1234</p>
+        <button onclick="verificarLogin()">Entrar</button>
+    </div>
+
+    <div id="tela-primeiro-acesso" class="card">
+        <h2 style="color: var(--danger); border-color: #fee2e2;">⚠️ Criar Nova Senha</h2>
+        <p style="font-size: 14px; color: #64748b;">Olá! Como é seu primeiro acesso, crie uma senha segura agora.</p>
+        <div class="password-container">
+            <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
+            <button type="button" class="toggle-password" onclick="toggleVisibility('novaSenhaObrigatoria')">👁️</button>
+        </div>
+        <button style="background: var(--success);" onclick="salvarNovaSenhaEEntrar()">Salvar e Acessar Sistema</button>
     </div>
 
     <div id="tela-sistema">
         <div class="card">
-            <h2>➕ Novo Lançamento</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="border:none; margin:0;">➕ Novo Lançamento</h2>
+                <button onclick="location.reload()" style="width: auto; padding: 5px 10px; background: #64748b;">Sair</button>
+            </div>
             <input type="text" id="cliente" placeholder="Nome do Cliente">
             <input type="date" id="data">
-            <input type="text" id="descricao" placeholder="Descrição (ex: Venda)">
+            <input type="text" id="descricao" placeholder="Descrição">
             <input type="number" id="valor" placeholder="Valor (0.00)">
             <select id="tipo">
                 <option value="Compra">🛍️ Compra (Dívida)</option>
@@ -64,60 +74,72 @@
         <div class="card">
             <h2>🔍 Buscar Cliente</h2>
             <div class="busca-container">
-                <input type="text" id="busca" placeholder="Nome...">
+                <input type="text" id="busca" placeholder="Nome do cliente...">
                 <button onclick="buscarNoSistema()">Buscar</button>
             </div>
             <div id="carregando" class="spinner"></div>
             <div id="resumo"></div>
-        </div>
-
-        <div class="card config-section">
-            <h2>⚙️ Alterar Minha Senha</h2>
-            <p style="font-size: 12px; margin-bottom: 10px;">A nova senha ficará salva apenas neste aparelho.</p>
-            <div class="password-container">
-                <input type="password" id="novaSenha" placeholder="Nova Senha">
-                <button type="button" class="toggle-password" onclick="toggleVisibility('novaSenha')">👁️</button>
-            </div>
-            <button style="background: var(--danger);" onclick="redefinirSenha()">Atualizar Senha</button>
         </div>
     </div>
 
     <script>
         const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
         const SENHA_PADRAO = "1234";
+        // LISTA DE USUÁRIOS PERMITIDOS
+        const USUARIOS_AUTORIZADOS = ["edna", "junior", "mayara", "maraysa"];
 
-        // Alternar visualização da senha
         function toggleVisibility(id) {
             const input = document.getElementById(id);
             input.type = input.type === "password" ? "text" : "password";
         }
 
-        function verificarAcesso() {
-            const user = document.getElementById('userInput').value;
+        function verificarLogin() {
+            const user = document.getElementById('userInput').value.trim().toLowerCase();
             const senhaDigitada = document.getElementById('senhaInput').value;
-            
-            // Busca se existe senha salva no celular, se não, usa a padrão
-            const senhaSalva = localStorage.getItem('senha_sistema') || SENHA_PADRAO;
+            const senhaSalva = localStorage.getItem('senha_' + user);
 
-            if(user.trim() !== "" && senhaDigitada === senhaSalva) {
-                document.getElementById('tela-login').style.display = 'none';
-                document.getElementById('tela-sistema').style.display = 'block';
-                document.getElementById('data').valueAsDate = new Date();
-            } else {
-                alert("Usuário ou Senha incorretos!");
+            // Verifica se o usuário está na lista
+            if (!USUARIOS_AUTORIZADOS.includes(user)) {
+                return alert("Usuário não autorizado!");
             }
+
+            // Primeiro acesso (senha 1234)
+            if (!senhaSalva && senhaDigitada === SENHA_PADRAO) {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('tela-primeiro-acesso').style.display = 'flex';
+                return;
+            }
+
+            // Acesso com senha personalizada
+            if (senhaSalva && senhaDigitada === senhaSalva) {
+                abrirSistema();
+                return;
+            }
+
+            alert("Senha incorreta para o usuário " + user);
         }
 
-        function redefinirSenha() {
-            const nova = document.getElementById('novaSenha').value;
-            if(nova.length < 4) return alert("A senha deve ter pelo menos 4 dígitos!");
+        function salvarNovaSenhaEEntrar() {
+            const user = document.getElementById('userInput').value.trim().toLowerCase();
+            const nova = document.getElementById('novaSenhaObrigatoria').value;
             
-            // Salva na memória do navegador
-            localStorage.setItem('senha_sistema', nova);
-            alert("Senha alterada com sucesso! Use a nova senha no próximo login.");
-            document.getElementById('novaSenha').value = "";
+            if (nova.length < 4 || nova === "1234") {
+                return alert("Crie uma senha de 4 dígitos diferente de 1234.");
+            }
+            
+            localStorage.setItem('senha_' + user, nova);
+            alert("Senha definida com sucesso!");
+            abrirSistema();
         }
 
+        function abrirSistema() {
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('tela-primeiro-acesso').style.display = 'none';
+            document.getElementById('tela-sistema').style.display = 'block';
+            document.getElementById('data').valueAsDate = new Date();
+        }
+
+        // --- FUNÇÕES DE DADOS ---
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
             const dados = {
@@ -127,21 +149,21 @@
                 valor: parseFloat(document.getElementById('valor').value),
                 tipo: document.getElementById('tipo').value
             };
-            if(!dados.cliente || !dados.valor) return alert("Preencha tudo!");
+            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
             btn.disabled = true; btn.innerText = "⏳...";
             try {
                 await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
                 alert("Salvo!");
                 document.getElementById('cliente').value = '';
                 document.getElementById('valor').value = '';
-            } catch (e) { alert("Erro!"); }
+            } catch (e) { alert("Erro ao conectar."); }
             finally { btn.disabled = false; btn.innerText = "💾 Salvar"; }
         }
 
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
             const resumoDiv = document.getElementById('resumo');
-            if(termo.length < 2) return alert("Digite o nome!");
+            if(termo.length < 2) return alert("Digite ao menos 2 letras.");
             document.getElementById('carregando').style.display = 'block';
             resumoDiv.innerHTML = '';
             try {
@@ -159,7 +181,7 @@
                 for (let nomeCliente in grupos) {
                     renderizarCliente(nomeCliente, grupos[nomeCliente]);
                 }
-            } catch (e) { alert("Erro na busca."); }
+            } catch (e) { alert("Erro ao buscar."); }
             finally { document.getElementById('carregando').style.display = 'none'; }
         }
 
@@ -171,7 +193,6 @@
                 <div class="cliente-nome-header">👤 ${nome}</div>
                 <div id="print-${idBloco}">
                     <div class="saldo-card"><span>Dívida Total:</span><span class="val-saldo"></span></div>`;
-
             lista.forEach(item => {
                 const valor = parseFloat(item[3]);
                 const tipo = item[4];
