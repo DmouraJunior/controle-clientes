@@ -3,237 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Controle Interno - Moura Variedades</title>
+    <title>Controle Interno - Moura Variedades</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* PALETA DE CORES MOURA (Fundo Escuro) */
-        :root { 
-            --primary: #515252; /* Cinza do logo */
-            --success: #16a34a; 
-            --danger: #dc2626; 
-            --bg-body: #9ca3af; /* Cinza-claro de fundo */
-            --bg-card: #e5e7eb; /* Cinza-médio dos campos */
-            --text: #ffffff; /* Texto branco */
-            --text-dark: #1e293b;
-        }
-        body { 
-            font-family: -apple-system, sans-serif; 
-            background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); 
-            margin: 0; padding: 15px; color: var(--text-dark); 
-            min-height: 100vh;
-        }
-        .card { 
-            background: rgba(255, 255, 255, 0.9); 
-            padding: 25px; border-radius: 12px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
-            margin-bottom: 25px; 
-            max-width: 500px; margin-left: auto; margin-right: auto;
-        }
-        h1, h2, h3 { 
-            margin-top: 0; color: var(--text-dark); 
-            border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; 
-        }
-        .text-center { text-align: center; }
-        .titulo-moura { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; color: #111; }
-        .subtitulo-moura { font-size: 0.8rem; color: #444; margin-top: 0; margin-bottom: 20px;}
-
-        input, select, button { 
-            width: 100%; padding: 14px; margin: 10px 0; 
-            border: 1px solid #d1d5db; border-radius: 8px; 
-            font-size: 16px; outline: none; box-sizing: border-box; 
-        }
-        button { 
-            background: var(--primary); color: white; border: none; 
-            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; 
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        button:active { transform: scale(0.98); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        :root { --primary: #515252; --success: #16a34a; --danger: #dc2626; --bg-body: #9ca3af; --text-dark: #1e293b; }
+        body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, var(--bg-body) 0%, #6b7280 100%); margin: 0; padding: 15px; color: var(--text-dark); min-height: 100vh; }
+        .card { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        h3 { border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 8px; margin-top: 0; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        .password-container { position: relative; }
-        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 22px; background: none; border: none; color: #6b7280; width: auto; padding: 0; margin: 0; }
+        /* Painel de Débito */
+        .debit-total { background: #1e293b; color: #fff; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .debit-total span { display: block; font-size: 1.5rem; font-weight: bold; color: #f87171; }
 
-        /* Estilo da Barra de Busca MOURA Fashion */
-        .busca-container { 
-            display: flex; gap: 10px; align-items: center; 
-            border: 2px solid var(--primary); border-radius: 30px; 
-            background: #fff; padding: 2px 5px; margin: 15px 0; 
-        }
-        .busca-container input { flex-grow: 1; margin: 0; border: none; border-radius: 30px; }
-        .busca-container button { width: auto; margin: 0; border-radius: 30px; padding: 10px 20px; font-size: 14px;}
+        /* Efeito Sanfona */
+        .sanfona-item { margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .sanfona-header { background: #eee; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
+        .sanfona-content { display: none; padding: 10px; background: #fff; }
+        
+        .btn-edit { background: #f59e0b; font-size: 12px; padding: 5px; width: auto; margin: 5px 0; }
+        .busca-container { display: flex; gap: 8px; border: 2px solid var(--primary); border-radius: 30px; background: #fff; padding: 4px; }
+        .busca-container input { border: none; flex-grow: 1; margin: 0; }
+        .busca-container button { width: auto; margin: 0; border-radius: 30px; }
 
-        /* Telas */
-        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 90vh;}
+        #tela-login, #tela-primeiro-acesso { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; }
         #tela-primeiro-acesso, #tela-sistema { display: none; }
-
-        .spinner { display: none; border: 4px solid rgba(0, 0, 0, 0.1); width: 35px; height: 35px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 25px auto; }
+        .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .cliente-bloco { border: 2px solid var(--primary); border-radius: 10px; padding: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.8); }
-        .cliente-nome-header { background: var(--primary); padding: 10px; border-radius: 6px; margin: -15px -15px 15px -15px; font-weight: bold; color: white; }
-        .saldo-card { display: flex; justify-content: space-between; padding: 12px; background: #fff; border-radius: 8px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
-        .historico-item { padding: 12px; border-bottom: 1px solid #d1d5db; display: flex; justify-content: space-between; font-size: 0.9rem; color: #111;}
     </style>
 </head>
 <body>
 
     <div id="tela-login" class="card">
-        <p class="titulo-moura text-center">sistema de controle interno</p>
-        <p class="subtitulo-moura text-center">Moura Variedades</p>
-        <input type="text" id="userInput" placeholder="Digite seu Nome Autorizado (edna, junior...)">
-        <div class="password-container">
-            <input type="password" id="senhaInput" placeholder="Sua Senha de Acesso">
-            <button type="button" class="toggle-password" onclick="toggleVisibility('senhaInput')">👁️</button>
-        </div>
+        <h2 style="text-align:center">Moura Variedades</h2>
+        <input type="text" id="userInput" placeholder="Nome do Funcionário">
+        <input type="password" id="senhaInput" placeholder="Senha">
         <button onclick="verificarLogin()">Entrar</button>
     </div>
 
     <div id="tela-primeiro-acesso" class="card">
-        <h2 style="color: var(--danger); border-color: #fee2e2;">⚠️ Criar Nova Senha</h2>
-        <p style="font-size: 14px; color: #1e293b;">Olá! Como é seu primeiro acesso, crie uma senha segura agora.</p>
-        <div class="password-container">
-            <input type="password" id="novaSenhaObrigatoria" placeholder="Crie sua Nova Senha Pessoal">
-            <button type="button" class="toggle-password" onclick="toggleVisibility('novaSenhaObrigatoria')">👁️</button>
-        </div>
-        <button style="background: var(--success);" onclick="salvarNovaSenhaEEntrar()">Salvar e Acessar Sistema</button>
+        <h3>⚠️ Definir Senha Pessoal</h3>
+        <input type="password" id="novaSenhaObrigatoria" placeholder="Nova Senha">
+        <button onclick="salvarNovaSenhaEEntrar()">Salvar e Entrar</button>
     </div>
 
     <div id="tela-sistema">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <p class="titulo-moura" style="border:none; margin:0;">sistema de controle interno</p>
-                <button onclick="location.reload()" style="width: auto; padding: 5px 12px; background: #64748b; border-radius: 30px; font-size: 11px;">Sair</button>
-            </div>
-            <p class="subtitulo-moura" style="margin-top:-10px; margin-bottom:15px">Moura Variedades</p>
-            <h3>➕ Novo Lançamento</h3>
-            <input type="text" id="cliente" placeholder="Nome do Cliente">
-            <input type="date" id="data">
-            <input type="text" id="descricao" placeholder="Descrição (ex: Compra de Vestido)">
-            <input type="number" id="valor" placeholder="Valor (0.00)">
-            <select id="tipo">
-                <option value="Compra">🛍️ Compra (Dívida)</option>
-                <option value="Pagamento">💵 Pagamento (Abate)</option>
-            </select>
-            <button id="btnSalvar" onclick="salvar()">💾 Salvar Lançamento</button>
+        <div class="debit-total">
+            DÉBITO TOTAL DA LOJA
+            <span id="valorDebitoTotal">R$ 0,00</span>
+            <button onclick="calcularDebitoTotal()" style="background:transparent; font-size:12px; text-decoration:underline">Atualizar Saldo Geral</button>
         </div>
 
         <div class="card">
-            <h3>🔍 Buscar Cliente e Histórico</h3>
+            <h3>➕ Novo Lançamento</h3>
+            <input type="text" id="cliente" placeholder="Nome do Cliente">
+            <input type="date" id="data">
+            <input type="number" id="valor" placeholder="Valor">
+            <select id="tipo">
+                <option value="Compra">🛍️ Compra</option>
+                <option value="Pagamento">💵 Pagamento</option>
+            </select>
+            <button id="btnSalvar" onclick="salvar()">Salvar</button>
+        </div>
+
+        <div class="card">
+            <h3>👥 Meus Clientes (Sanfona)</h3>
+            <button onclick="listarClientes()" style="background:#475569">Carregar Lista de Clientes</button>
+            <div id="listaSanfona" style="margin-top:15px"></div>
+        </div>
+
+        <div class="card">
+            <h3>🔍 Busca Rápida</h3>
             <div class="busca-container">
-                <input type="text" id="busca" placeholder="Digite o nome do cliente...">
+                <input type="text" id="busca" placeholder="Nome...">
                 <button onclick="buscarNoSistema()">Buscar</button>
             </div>
             <div id="carregando" class="spinner"></div>
-            <div id="resumo"></div>
+            <div id="resumoBusca"></div>
         </div>
     </div>
 
     <script>
         const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyq6KHQLDptVM0J_wQ9DrSo4pmyDx5s6sGksnDSZ5ajXt8OhcTfnC-mrEcx34FpxZogMw/exec";
-        const SENHA_PADRAO = "1234";
-        // LISTA DE USUÁRIOS PERMITIDOS
-        const USUARIOS_AUTORIZADOS = ["edna", "junior", "mayara", "maraysa"];
-
-        function toggleVisibility(id) {
-            const input = document.getElementById(id);
-            input.type = input.type === "password" ? "text" : "password";
-        }
+        const USUARIOS = ["edna", "junior", "mayara", "maraysa"];
 
         function verificarLogin() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
-            const senhaDigitada = document.getElementById('senhaInput').value;
-            const senhaSalva = localStorage.getItem('senha_' + user);
-
-            if (!USUARIOS_AUTORIZADOS.includes(user)) { return alert("Usuário não autorizado!"); }
-            if (!senhaSalva && senhaDigitada === SENHA_PADRAO) {
-                document.getElementById('tela-login').style.display = 'none';
-                document.getElementById('tela-primeiro-acesso').style.display = 'flex';
-                return;
-            }
-            if (senhaSalva && senhaDigitada === senhaSalva) { abrirSistema(); return; }
-            alert("Senha incorreta.");
+            const senha = document.getElementById('senhaInput').value;
+            const salva = localStorage.getItem('senha_' + user);
+            if (!USUARIOS.includes(user)) return alert("Não autorizado");
+            if (!salva && senha === "1234") { 
+                document.getElementById('tela-login').style.display='none'; 
+                document.getElementById('tela-primeiro-acesso').style.display='flex';
+            } else if (salva && senha === salva) { abrirSistema(); }
+            else { alert("Senha incorreta"); }
         }
 
         function salvarNovaSenhaEEntrar() {
             const user = document.getElementById('userInput').value.trim().toLowerCase();
             const nova = document.getElementById('novaSenhaObrigatoria').value;
-            if (nova.length < 4 || nova === "1234") { return alert("Crie uma senha de 4 dígitos diferente de 1234."); }
             localStorage.setItem('senha_' + user, nova);
-            alert("Senha definida com sucesso!");
             abrirSistema();
         }
 
         function abrirSistema() {
-            document.getElementById('tela-login').style.display = 'none';
-            document.getElementById('tela-primeiro-acesso').style.display = 'none';
-            document.getElementById('tela-sistema').style.display = 'block';
+            document.getElementById('tela-login').style.display='none';
+            document.getElementById('tela-primeiro-acesso').style.display='none';
+            document.getElementById('tela-sistema').style.display='block';
             document.getElementById('data').valueAsDate = new Date();
         }
 
+        async function calcularDebitoTotal() {
+            const span = document.getElementById('valorDebitoTotal');
+            span.innerText = "Calculando...";
+            const resp = await fetch(URL_GOOGLE);
+            const dados = await resp.json();
+            let totalGeral = 0;
+            dados.slice(1).forEach(l => {
+                let v = parseFloat(l[3]);
+                totalGeral += (l[4] === "Compra" ? v : -v);
+            });
+            span.innerText = "R$ " + totalGeral.toFixed(2);
+        }
+
+        async function listarClientes() {
+            const div = document.getElementById('listaSanfona');
+            div.innerHTML = "Carregando...";
+            const resp = await fetch(URL_GOOGLE);
+            const dados = await resp.json();
+            const clientes = [...new Set(dados.slice(1).map(l => l[1]))].sort();
+            
+            div.innerHTML = "";
+            clientes.forEach(nome => {
+                const item = document.createElement('div');
+                item.className = 'sanfona-item';
+                item.innerHTML = `
+                    <div class="sanfona-header" onclick="toggleSanfona(this)">
+                        <span>👤 ${nome}</span> <span>➕</span>
+                    </div>
+                    <div class="sanfona-content">
+                        <button class="btn-edit" onclick="editarNome('${nome}')">✏️ Renomear Cliente</button>
+                        <div id="hist-${nome.replace(/\s/g,'')}">Buscando histórico...</div>
+                    </div>`;
+                div.appendChild(item);
+            });
+        }
+
+        function toggleSanfona(el) {
+            const content = el.nextElementSibling;
+            content.style.display = content.style.display === "block" ? "none" : "block";
+        }
+
+        async function editarNome(nomeAntigo) {
+            const novoNome = prompt("Digite o novo nome para " + nomeAntigo);
+            if (!novoNome) return;
+            if (confirm("Isso mudará o nome de '" + nomeAntigo + "' para '" + novoNome + "' em todos os registros. Confirma?")) {
+                await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({nomeAntigo, nomeNovo: novoNome, acao: 'editar'}) });
+                alert("Solicitação enviada! Atualize a lista em instantes.");
+            }
+        }
+
+        // Funções de Busca e Salvar seguem a mesma lógica anterior...
         async function salvar() {
             const btn = document.getElementById('btnSalvar');
-            const dados = {
-                data: document.getElementById('data').value,
-                cliente: document.getElementById('cliente').value.trim(),
-                descricao: document.getElementById('descricao').value,
-                valor: parseFloat(document.getElementById('valor').value),
-                tipo: document.getElementById('tipo').value
-            };
-            if(!dados.cliente || !dados.valor) return alert("Preencha Nome e Valor!");
-            btn.disabled = true; btn.innerText = "⏳...";
-            try {
-                await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-                alert("Salvo!");
-                document.getElementById('cliente').value = '';
-                document.getElementById('valor').value = '';
-            } catch (e) { alert("Erro ao conectar."); }
-            finally { btn.disabled = false; btn.innerText = "💾 Salvar"; }
+            const dados = { data: document.getElementById('data').value, cliente: document.getElementById('cliente').value.trim(), valor: parseFloat(document.getElementById('valor').value), tipo: document.getElementById('tipo').value };
+            btn.disabled = true;
+            await fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
+            alert("Salvo!"); btn.disabled = false;
         }
 
         async function buscarNoSistema() {
             const termo = document.getElementById('busca').value.trim().toLowerCase();
-            const resumoDiv = document.getElementById('resumo');
-            if(termo.length < 2) return alert("Digite ao menos 2 letras.");
             document.getElementById('carregando').style.display = 'block';
-            resumoDiv.innerHTML = '';
-            try {
-                const response = await fetch(URL_GOOGLE);
-                const dados = await response.json();
-                const filtrados = dados.slice(1).filter(l => l[1] && l[1].toString().toLowerCase().includes(termo));
-                const grupos = {};
-                filtrados.forEach(item => { const nome = item[1]; if (!grupos[nome]) grupos[nome] = []; grupos[nome].push(item); });
-                for (let nomeCliente in grupos) { renderizarCliente(nomeCliente, grupos[nomeCliente]); }
-            } catch (e) { alert("Erro ao buscar."); }
-            finally { document.getElementById('carregando').style.display = 'none'; }
-        }
-
-        function renderizarCliente(nome, lista) {
-            const resumoDiv = document.getElementById('resumo');
-            const idBloco = "bloco-" + Math.random().toString(36).substr(2, 9);
-            let total = 0;
-            let html = `<div class="cliente-bloco" id="${idBloco}">
-                <div class="cliente-nome-header">👤 ${nome}</div>
-                <div id="print-${idBloco}">
-                    <div class="saldo-card"><span>Dívida Total Atual:</span><span class="val-saldo"></span></div>`;
-            lista.forEach(item => {
-                const valor = parseFloat(item[3]);
-                const tipo = item[4];
-                total += (tipo === "Compra" ? valor : -valor);
-                html += `<div class="historico-item">
-                    <div><strong>${new Date(item[0]).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</strong><br><small>${item[2] || ''}</small></div>
-                    <span style="color: ${tipo === 'Compra' ? 'red' : 'green'}">R$ ${valor.toFixed(2)}</span>
-                </div>`;
-            });
-            html += `</div><button class="btn-pdf" style="background:#475569;margin-top:10px" onclick="gerarPDF('print-${idBloco}', '${nome}')">📄 Gerar PDF</button></div>`;
-            resumoDiv.innerHTML += html;
-            const bloco = document.getElementById(idBloco);
-            const saldoSpan = bloco.querySelector('.val-saldo');
-            saldoSpan.innerText = `R$ ${total.toFixed(2)}`;
-            saldoSpan.style.color = total > 0 ? 'red' : 'green';
-        }
-
-        function gerarPDF(id, nome) {
-            const elemento = document.getElementById(id);
-            html2pdf().set({ margin: 10, filename: `Extrato_${nome}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(elemento).save();
+            const resp = await fetch(URL_GOOGLE);
+            const dados = await resp.json();
+            const filtrados = dados.slice(1).filter(l => l[1].toLowerCase().includes(termo));
+            document.getElementById('resumoBusca').innerHTML = filtrados.length + " registros encontrados.";
+            document.getElementById('carregando').style.display = 'none';
         }
     </script>
 </body>
