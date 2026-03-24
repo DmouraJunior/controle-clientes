@@ -41,8 +41,6 @@
         #tela-sistema { display: none; max-width: 500px; margin: auto; }
         .spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .btn-encerrar { background: var(--danger); margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -57,9 +55,10 @@
     </div>
 
     <div id="tela-sistema">
-        <button class="btn-encerrar" onclick="encerrarSessao()">🔴 ENCERRAR SESSÃO</button>
-
+        
         <div class="debit-total">
+            <button onclick="encerrarSessao()" style="position: absolute; top: 10px; right: 10px; width: auto; padding: 4px 8px; font-size: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #94a3b8; margin: 0;">SAIR</button>
+
             DÉBITO TOTAL DA LOJA (GERAL)
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <span id="valorDebitoTotal">****</span>
@@ -119,7 +118,7 @@
         function encerrarSessao() {
             if(confirm("Deseja realmente sair?")) {
                 document.getElementById('tela-sistema').style.display='none';
-                document.getElementById('tela-login').style.display='flex'; // Volta a centralizar
+                document.getElementById('tela-login').style.display='flex'; 
                 document.getElementById('userInput').value = '';
                 document.getElementById('senhaInput').value = '';
             }
